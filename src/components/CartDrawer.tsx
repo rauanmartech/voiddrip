@@ -1,7 +1,7 @@
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
 import { X, Trash2, Plus, Minus, ArrowRight, ShoppingBag } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
@@ -10,6 +10,19 @@ const formatPrice = (price: number) => {
 export const CartDrawer = () => {
   const { isCartOpen, toggleCart, items, removeFromCart, updateQuantity, cartTotal } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  // Trava a rolagem da página quando o carrinho estiver aberto
+  useEffect(() => {
+    if (isCartOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isCartOpen]);
 
   // Animação do overlay
   const overlayVariants: Variants = {
