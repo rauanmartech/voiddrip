@@ -156,15 +156,22 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
               />
             </AnimatePresence>
 
-            {/* Pagination Indicators - Dot Style */}
+            {/* Pagination Indicators - Neon Sticks */}
             {images.length > 1 && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-30">
-                {images.map((_, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`h-0.5 transition-all duration-300 ${idx === currentImageIndex ? 'w-8 bg-primary shadow-[0_0_10px_white]' : 'w-2 bg-white/20'}`} 
-                  />
-                ))}
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30 px-3 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
+                {images.map((_, idx) => {
+                  const isActive = idx === currentImageIndex;
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`h-1 rounded-full transition-all duration-500 ease-out ${
+                        isActive 
+                          ? 'w-12 bg-white shadow-[0_0_10px_rgba(255,255,255,0.8),0_0_20px_#ff4400]' 
+                          : 'w-3 bg-white/30'
+                      }`} 
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
