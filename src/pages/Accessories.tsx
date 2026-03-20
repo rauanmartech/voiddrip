@@ -68,7 +68,7 @@ const Accessories = () => {
           <div className="container mx-auto px-6 mb-16">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-8">
               <div className="max-w-xl">
-                <h2 className="font-display text-xl md:text-2xl tracking-[0.2em] mb-4">COLEÇÃO CURADA</h2>
+                <h2 className="font-display text-xl md:text-2xl tracking-[0.2em] mb-4">CURADORIA</h2>
                 <p className="font-body text-sm text-muted-foreground leading-relaxed">
                   Objetos moldados pela geometria e pela gravidade. Cada acessório é um fragmento de identidade urbana projetado para o futuro.
                 </p>

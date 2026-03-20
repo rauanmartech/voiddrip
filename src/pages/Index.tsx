@@ -26,7 +26,7 @@ const Index = () => {
         <div className="relative z-10">
           <div className="text-center pt-20 pb-4">
             <h2 className="font-display text-2xl md:text-3xl tracking-[0.3em] text-foreground">
-              COLEÇÃO
+              LOJA
             </h2>
             <p className="font-body text-xs text-muted-foreground mt-3 tracking-wider">
               Caia no vazio

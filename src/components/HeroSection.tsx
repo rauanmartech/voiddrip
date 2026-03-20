@@ -66,7 +66,7 @@ const HeroSection = () => {
           </div>
         </div>
         <Link to="/colecao" className="btn-explore mb-2 md:mb-4 animate-fade-up-delay-2">
-          Explorar Coleção
+          Explorar Conjuntos
         </Link>
       </div>
     </section>

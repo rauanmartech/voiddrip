@@ -8,7 +8,7 @@ interface MobileMenuProps {
 }
 
 const menuItems = [
-  { label: "Home", path: "/", icon: <Home size={16} /> },
+  { label: "Loja", path: "/", icon: <Home size={16} /> },
   { label: "Conjuntos", path: "/colecao", icon: <Package size={16} /> },
   { label: "Acessórios", path: "/acessorios", icon: <LayoutGrid size={16} /> },
   { label: "Em Alta", path: "/#trending", icon: <TrendingUp size={16} /> },
