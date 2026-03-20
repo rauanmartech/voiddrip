@@ -65,9 +65,9 @@ const HeroSection = () => {
             </p>
           </div>
         </div>
-        <Link to="/colecao" className="btn-explore mb-2 md:mb-4 animate-fade-up-delay-2">
-          Explorar Conjuntos
-        </Link>
+        <a href="#loja" className="btn-explore mb-2 md:mb-4 animate-fade-up-delay-2">
+          Explorar Loja
+        </a>
       </div>
     </section>
   );

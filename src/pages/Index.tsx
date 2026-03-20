@@ -21,7 +21,7 @@ const Index = () => {
       <TrendingSection />
 
       {/* Products section — all products, no limit */}
-      <section className="relative spacetime-grid">
+      <section id="loja" className="relative spacetime-grid">
         <CosmicElements />
         <div className="relative z-10">
           <div className="text-center pt-20 pb-4">
