@@ -171,17 +171,21 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
 
           {/* Details Section — The "Aba" (Bottom Sheet) rebuilt for performance and futuristic look */}
           <div 
-            className="flex-1 bg-[#090909] relative z-[175] overflow-y-auto mt-[-2rem] rounded-t-[2.5rem] border-t border-white/5 flex flex-col no-scrollbar cursor-default"
+            className="flex-1 bg-[#090909] relative z-[175] mt-[-2rem] rounded-t-[2.5rem] border-t border-white/5 flex flex-col overflow-hidden"
           >
+            {/* Top Gradient Fade to soften the scroll cut */}
+            <div className="absolute top-0 inset-x-0 h-10 bg-gradient-to-b from-[#090909] to-transparent z-20 pointer-events-none" />
+
+            {/* Detailed Card Close Button (Mobile Only) - Now Fixed! */}
+            <button
+              onClick={onClose}
+              className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center bg-white/5 border border-white/10 text-white/40 rounded-full active:scale-95 transition-all z-30"
+            >
+              <X size={16} />
+            </button>
             
-            <div className="px-6 pt-12 pb-32 relative">
-              {/* Detailed Card Close Button (Mobile Only) */}
-              <button
-                onClick={onClose}
-                className="absolute top-8 right-6 w-8 h-8 flex items-center justify-center bg-white/5 border border-white/10 text-white/40 rounded-full active:scale-95 transition-all"
-              >
-                <X size={16} />
-              </button>
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-12 pb-32 relative z-10">
 
               <h1 className="font-display text-xl sm:text-2xl text-foreground tracking-[0.1em] uppercase leading-normal mb-2 pr-14 mt-1">
                 {product.name}
