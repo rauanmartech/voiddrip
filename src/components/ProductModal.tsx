@@ -169,8 +169,6 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
 
           {/* Details Section — The "Aba" (Bottom Sheet) rebuilt for performance and futuristic look */}
           <div 
-            onClick={() => setShowHeader(false)}
-            onTouchStart={() => setShowHeader(false)}
             className="flex-1 bg-[#090909] relative z-[175] overflow-y-auto mt-[-2rem] rounded-t-[2.5rem] border-t border-white/5 flex flex-col no-scrollbar cursor-default"
           >
             
