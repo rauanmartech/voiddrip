@@ -355,18 +355,54 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
                 <div>
                   <h4 className="font-display text-[9px] tracking-[0.4em] text-foreground/40 mb-6 uppercase">TAMANHOS</h4>
                   <div className="flex flex-wrap gap-3">
-                    {product.sizes.map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`font-display text-xs w-12 h-12 border transition-all duration-300 ${selectedSize === size
-                            ? "border-primary text-white bg-white/5 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-                            : "border-white/5 text-muted-foreground hover:border-white/40"
-                          }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                    {product.sizes.map((size) => {
+                      const isSoldOut = size.endsWith('*');
+                      const displayName = isSoldOut ? size.slice(0, -1) : size;
+                      return (
+                        <button
+                          key={size}
+                          disabled={isSoldOut}
+                          onClick={() => setSelectedSize(size)}
+                          className={`font-display text-xs w-12 h-12 border transition-all duration-300 ${isSoldOut
+                              ? "border-white/5 text-white/10 cursor-not-allowed"
+                              : selectedSize === size
+                                ? "border-primary text-white bg-white/5 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                                : "border-white/5 text-muted-foreground hover:border-white/40"
+                            }`}
+                        >
+                          <span className={isSoldOut ? "line-through opacity-30" : ""}>{displayName}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {product.colors && product.colors.length > 0 && (
+                <div>
+                  <h4 className="font-display text-[9px] tracking-[0.4em] text-foreground/40 mb-6 uppercase">CORES</h4>
+                  <div className="flex flex-col gap-2">
+                    {product.colors.map((color) => {
+                      const isSoldOut = color.endsWith('*');
+                      const displayName = isSoldOut ? color.slice(0, -1) : color;
+                      return (
+                        <button
+                          key={color}
+                          disabled={isSoldOut}
+                          onClick={() => setSelectedColor(color)}
+                          className={`font-display text-[10px] uppercase tracking-[0.3em] w-full py-4 border transition-all duration-300 text-left px-5 flex items-center justify-between ${isSoldOut
+                              ? "border-white/5 text-white/10 cursor-not-allowed bg-black/40"
+                              : selectedColor === color
+                                ? "border-primary text-primary bg-white/5"
+                                : "border-white/5 text-muted-foreground hover:border-white/40"
+                            }`}
+                        >
+                          <span className={isSoldOut ? "line-through opacity-30" : ""}>{displayName}</span>
+                          {selectedColor === color && !isSoldOut && <div className="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_white]" />}
+                          {isSoldOut && <span className="text-[7px] tracking-widest text-white/20">OUT</span>}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -374,12 +410,11 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock_quantity <= 0}
-                className={`max-w-xs w-full py-5 border font-display tracking-[0.5em] text-xs flex items-center justify-center gap-3 transition-all duration-500 ${product.stock_quantity > 0
+                className={`max-w-xs w-full py-5 border font-display tracking-[0.5em] text-xs flex items-center justify-center transition-all duration-500 ${product.stock_quantity > 0
                     ? "border-primary text-primary hover:bg-primary hover:text-black shadow-[0_0_50px_rgba(255,255,255,0.05)]"
                     : "border-white/5 text-white/10 cursor-not-allowed opacity-30"
                   }`}
               >
-                <ShoppingBag size={18} />
                 {product.stock_quantity > 0 ? "ADICIONAR AO CARRINHO" : "ESGOTADO"}
               </button>
             </div>
