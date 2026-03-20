@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Product } from "./ProductGrid";
 import { ShoppingBag, ChevronLeft, ChevronRight, X, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +16,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
 
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
+  const [showHeader, setShowHeader] = useState(true);
 
   // Image prefetch
   useEffect(() => {
@@ -58,39 +60,57 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
     }),
   };
 
-  return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-background/98 backdrop-blur-2xl p-0 md:p-12 overflow-hidden">
-      {/* Background Atmosphere */}
-      <div className="absolute inset-0 pointer-events-none opacity-20">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_0%,transparent_70%)]" />
-      </div>
-
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-0 md:p-12 overflow-hidden">
+      {/* Background Atmosphere - Solid Fade */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="relative w-full h-full md:w-[90vw] md:h-[85vh] md:max-w-6xl bg-card/40 md:bg-card border-none md:border md:border-white/10 shadow-[0_0_100px_rgba(0,0,0,1)] flex flex-col md:flex-row overflow-hidden"
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-background/98 backdrop-blur-2xl pointer-events-none"
+      >
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_0%,transparent_70%)]" />
+        </div>
+      </motion.div>
+
+      <motion.div 
+        initial={{ y: "100%", opacity: 0, scale: 1 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: "100%", opacity: 0, transition: { duration: 0.3, ease: "easeInOut" } }}
+        transition={{ type: "spring", stiffness: 300, damping: 32 }}
+        className="relative w-full h-full md:w-[90vw] md:h-[85vh] md:max-w-6xl bg-card/40 md:bg-card border-none md:border md:border-white/10 shadow-[0_0_100px_rgba(0,0,0,1)] flex flex-col md:flex-row overflow-hidden z-[160]"
       >
         
         {/* MOBILE UI — START */}
         <div className="md:hidden flex flex-col h-full w-full relative">
           
           {/* Mobile Header Overlay */}
-          <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-black/90 to-transparent z-[170] flex items-center justify-between px-6 pointer-events-none">
-            <div className="flex flex-col">
-              <span className="font-display text-[8px] tracking-[0.5em] text-primary drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] uppercase opacity-80">
-                VOID DRIP
-              </span>
-              <span className="font-display text-[10px] tracking-[0.2em] text-white uppercase mt-1 drop-shadow-md">
-                {product.category}
-              </span>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 text-white rounded-full active:scale-90 transition-transform pointer-events-auto"
-            >
-              <X size={20} />
-            </button>
-          </div>
+          <AnimatePresence>
+            {showHeader && (
+              <motion.div 
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -100, opacity: 0 }}
+                className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-black/90 to-transparent z-[170] flex items-center justify-between px-6 pointer-events-none"
+              >
+                <div className="flex flex-col">
+                  <span className="font-display text-[8px] tracking-[0.5em] text-primary drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] uppercase opacity-80">
+                    VOID DRIP
+                  </span>
+                  <span className="font-display text-[10px] tracking-[0.2em] text-white uppercase mt-1 drop-shadow-md">
+                    {product.category}
+                  </span>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 text-white rounded-full active:scale-90 transition-transform pointer-events-auto"
+                >
+                  <X size={20} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Mobile Image Stack (Fixes 'travando' by using simple transitions) */}
           <div className="relative w-full aspect-square bg-black overflow-hidden flex-shrink-0">
@@ -131,14 +151,22 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
           </div>
 
           {/* Details Section — The "Aba" (Bottom Sheet) rebuilt for performance and futuristic look */}
-          <div className="flex-1 bg-[#090909] relative z-20 overflow-y-auto mt-[-2rem] rounded-t-[2.5rem] border-t border-white/5 flex flex-col no-scrollbar">
-            {/* Minimal Handle Overlay */}
-            <div className="sticky top-0 w-full flex flex-col items-center pt-3 pb-2 bg-[#090909] z-40">
-              <div className="w-10 h-1 bg-white/20 rounded-full" />
-            </div>
+          <div 
+            onClick={() => setShowHeader(false)}
+            onTouchStart={() => setShowHeader(false)}
+            className="flex-1 bg-[#090909] relative z-[175] overflow-y-auto mt-[-2rem] rounded-t-[2.5rem] border-t border-white/5 flex flex-col no-scrollbar cursor-default"
+          >
+            
+            <div className="p-8 pb-32 relative">
+              {/* Detailed Card Close Button (Mobile Only) */}
+              <button
+                onClick={onClose}
+                className="absolute top-8 right-8 w-8 h-8 flex items-center justify-center bg-white/5 border border-white/10 text-white/40 rounded-full active:scale-95 transition-all"
+              >
+                <X size={16} />
+              </button>
 
-            <div className="p-8 pb-32">
-              <h1 className="font-display text-2xl text-foreground tracking-[0.1em] uppercase leading-tight mb-2">
+              <h1 className="font-display text-2xl text-foreground tracking-[0.1em] uppercase leading-tight mb-2 pr-12">
                 {product.name}
               </h1>
               <p className="font-display text-sm tracking-[0.4em] text-primary/80 mb-6 uppercase">
@@ -159,18 +187,28 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
                   <div>
                     <h4 className="font-display text-[8px] tracking-[0.4em] text-muted-foreground uppercase border-b border-white/5 pb-2 mb-4">AVAILABLE SIZES</h4>
                     <div className="flex flex-wrap gap-2.5">
-                      {product.sizes.map((size) => (
-                        <button
-                          key={size}
-                          onClick={() => setSelectedSize(size)}
-                          className={`font-display text-[10px] w-12 h-12 border transition-all duration-300 flex items-center justify-center ${selectedSize === size
-                              ? "border-primary text-white bg-white/5"
-                              : "border-white/5 text-muted-foreground"
-                            }`}
-                        >
-                          {size}
-                        </button>
-                      ))}
+                      {product.sizes.map((size) => {
+                        const isSoldOut = size.endsWith('*');
+                        const displayName = isSoldOut ? size.slice(0, -1) : size;
+                        return (
+                          <button
+                            key={size}
+                            disabled={isSoldOut}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedSize(size);
+                            }}
+                            className={`font-display text-[10px] w-12 h-12 border transition-all duration-300 flex items-center justify-center ${isSoldOut
+                                ? "border-white/5 text-white/10 cursor-not-allowed"
+                                : selectedSize === size
+                                  ? "border-primary text-white bg-white/5"
+                                  : "border-white/5 text-muted-foreground"
+                              }`}
+                          >
+                            <span className={isSoldOut ? "line-through opacity-30" : ""}>{displayName}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -186,16 +224,20 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
                           <button
                             key={color}
                             disabled={isSoldOut}
-                            onClick={() => setSelectedColor(color)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedColor(color);
+                            }}
                             className={`font-display text-[9px] uppercase tracking-[0.3em] w-full py-4 border transition-all duration-300 text-left px-5 flex items-center justify-between ${isSoldOut
-                                ? "border-transparent text-white/10 cursor-not-allowed hidden"
+                                ? "border-white/5 text-white/10 cursor-not-allowed bg-black/40"
                                 : selectedColor === color
                                   ? "border-primary text-white bg-white/5"
                                   : "border-white/5 text-muted-foreground"
                               }`}
                           >
-                            <span>{displayName}</span>
-                            {selectedColor === color && <div className="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_white]" />}
+                            <span className={isSoldOut ? "line-through opacity-30" : ""}>{displayName}</span>
+                            {selectedColor === color && !isSoldOut && <div className="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_white]" />}
+                            {isSoldOut && <span className="text-[7px] tracking-widest text-white/20">OUT</span>}
                           </button>
                         );
                       })}
@@ -329,7 +371,8 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
         {/* DESKTOP UI — END */}
 
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
