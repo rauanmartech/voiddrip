@@ -157,14 +157,16 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
             </AnimatePresence>
 
             {/* Pagination Indicators - Dot Style */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-30">
-              {images.map((_, idx) => (
-                <div 
-                  key={idx} 
-                  className={`h-0.5 transition-all duration-300 ${idx === currentImageIndex ? 'w-8 bg-primary shadow-[0_0_10px_white]' : 'w-2 bg-white/20'}`} 
-                />
-              ))}
-            </div>
+            {images.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-30">
+                {images.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`h-0.5 transition-all duration-300 ${idx === currentImageIndex ? 'w-8 bg-primary shadow-[0_0_10px_white]' : 'w-2 bg-white/20'}`} 
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Details Section — The "Aba" (Bottom Sheet) rebuilt for performance and futuristic look */}
@@ -314,25 +316,29 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
             </AnimatePresence>
 
             {/* Desktop Pagination Overlay */}
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 z-[165] bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 pointer-events-auto">
-              {images.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    setDirection(idx > currentImageIndex ? 1 : -1);
-                    setCurrentImageIndex(idx);
-                  }}
-                  className={`h-1 transition-all duration-500 rounded-full ${idx === currentImageIndex ? 'w-8 bg-primary shadow-[0_0_10px_white]' : 'w-2 bg-white/20'}`} 
-                />
-              ))}
-            </div>
+            {images.length > 1 && (
+              <>
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 z-[165] bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 pointer-events-auto">
+                  {images.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setDirection(idx > currentImageIndex ? 1 : -1);
+                        setCurrentImageIndex(idx);
+                      }}
+                      className={`h-1 transition-all duration-500 rounded-full ${idx === currentImageIndex ? 'w-8 bg-primary shadow-[0_0_10px_white]' : 'w-2 bg-white/20'}`} 
+                    />
+                  ))}
+                </div>
 
-            <button onClick={() => paginate(-1)} className="absolute left-6 top-1/2 -translate-y-1/2 z-[165] w-12 h-12 flex items-center justify-center bg-black/20 backdrop-blur-xl border border-white/10 text-white rounded-full hover:bg-white hover:text-black transition-all">
-              <ChevronLeft size={24} />
-            </button>
-            <button onClick={() => paginate(1)} className="absolute right-6 top-1/2 -translate-y-1/2 z-[165] w-12 h-12 flex items-center justify-center bg-black/20 backdrop-blur-xl border border-white/10 text-white rounded-full hover:bg-white hover:text-black transition-all">
-              <ChevronRight size={24} />
-            </button>
+                <button onClick={() => paginate(-1)} className="absolute left-6 top-1/2 -translate-y-1/2 z-[165] w-12 h-12 flex items-center justify-center bg-black/20 backdrop-blur-xl border border-white/10 text-white rounded-full hover:bg-white hover:text-black transition-all">
+                  <ChevronLeft size={24} />
+                </button>
+                <button onClick={() => paginate(1)} className="absolute right-6 top-1/2 -translate-y-1/2 z-[165] w-12 h-12 flex items-center justify-center bg-black/20 backdrop-blur-xl border border-white/10 text-white rounded-full hover:bg-white hover:text-black transition-all">
+                  <ChevronRight size={24} />
+                </button>
+              </>
+            )}
           </div>
 
           <div className="w-1/2 h-full bg-card p-16 flex flex-col justify-center overflow-y-auto no-scrollbar relative border-l border-white/5">
