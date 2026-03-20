@@ -187,7 +187,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-12 pb-32 relative z-10">
 
-              <h1 className="font-display text-xl sm:text-2xl text-foreground tracking-[0.1em] uppercase leading-normal mb-2 pr-14 mt-1">
+              <h1 className="font-display text-xl sm:text-2xl text-foreground tracking-[0.1em] uppercase leading-normal mb-2 pr-14 mt-1 break-words whitespace-normal">
                 {product.name}
               </h1>
               <p className="font-display text-sm tracking-[0.4em] text-primary/80 mb-8 uppercase">
@@ -345,16 +345,17 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
             )}
           </div>
 
-          <div className="w-1/2 h-full bg-card p-16 flex flex-col justify-center overflow-y-auto no-scrollbar relative border-l border-white/5">
-            <span className="font-display text-[9px] tracking-[0.5em] text-muted-foreground uppercase mb-4 opacity-50">
-              {product.category}
-            </span>
-            <h1 className="font-display text-5xl text-foreground tracking-[0.1em] uppercase leading-tight mb-6">
-              {product.name}
-            </h1>
-            <p className="font-display text-2xl tracking-[0.2em] text-primary mb-12">
-              {formatPrice(product.price)}
-            </p>
+          <div className="w-1/2 h-full bg-card p-10 lg:p-16 flex flex-col overflow-y-auto no-scrollbar relative border-l border-white/5">
+            <div className="my-auto w-full">
+              <span className="font-display text-[9px] tracking-[0.5em] text-muted-foreground uppercase mb-4 opacity-50 block">
+                {product.category}
+              </span>
+              <h1 className="font-display text-4xl lg:text-5xl text-foreground tracking-[0.1em] uppercase leading-tight mb-6 break-words whitespace-normal">
+                {product.name}
+              </h1>
+              <p className="font-display text-2xl tracking-[0.2em] text-primary mb-12">
+                {formatPrice(product.price)}
+              </p>
 
             <div className="space-y-12">
               <div className="font-body text-base text-muted-foreground leading-relaxed max-w-md">
@@ -427,6 +428,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
               >
                 {product.stock_quantity > 0 ? "ADICIONAR AO CARRINHO" : "ESGOTADO"}
               </button>
+            </div>
             </div>
           </div>
         </div>
