@@ -63,7 +63,7 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
           )}
         </div>
 
-        {isTrending && (
+        {isTrending && product.stock_quantity > 0 && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 md:left-3 md:translate-x-0 z-20">
             {/* Outer glow ring */}
             <div className="absolute inset-0 rounded-full bg-orange-500/20 blur-md scale-150 animate-pulse" />
@@ -97,10 +97,31 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
 
         {product.stock_quantity <= 0 && (
           <>
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 md:left-3 md:translate-x-0 z-30">
+              <div className="absolute inset-0 rounded-full bg-white/5 blur-md scale-150" />
+              <div
+                className="relative flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/20 backdrop-blur-xl overflow-hidden whitespace-nowrap"
+                style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.8), rgba(40,40,40,0.8))' }}
+              >
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'badge-shimmer 3s linear infinite',
+                  }}
+                />
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse" />
+                <span className="relative font-display text-[7px] tracking-[0.4em] text-foreground select-none uppercase font-bold">
+                  ESGOTADO
+                </span>
+              </div>
+            </div>
+
             <div className="absolute inset-0 bg-black/80 z-10 flex flex-col items-center justify-center gap-2 overflow-hidden px-4">
-              <span className="font-display text-[10px] tracking-[0.4em] text-foreground/60 select-none uppercase text-center">ESGOTADO</span>
-              <div className="relative opacity-30 mt-1">
-                <span className="font-display text-2xl select-none animate-pulse">:(</span>
+              <div className="relative mt-1">
+                <span className="font-display text-4xl select-none opacity-40 animate-glitch-1 inline-block text-white">:(</span>
+                <span className="absolute inset-0 font-display text-4xl select-none opacity-20 animate-glitch-2 text-primary pointer-events-none">:(</span>
               </div>
             </div>
           </>
