@@ -158,7 +158,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
 
             {/* Pagination Indicators - Neon Sticks */}
             {images.length > 1 && (
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30 px-3 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
+              <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30 px-3 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
                 {images.map((_, idx) => {
                   const isActive = idx === currentImageIndex;
                   return (
