@@ -174,19 +174,19 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
             className="flex-1 bg-[#090909] relative z-[175] overflow-y-auto mt-[-2rem] rounded-t-[2.5rem] border-t border-white/5 flex flex-col no-scrollbar cursor-default"
           >
             
-            <div className="p-8 pb-32 relative">
+            <div className="px-6 pt-12 pb-32 relative">
               {/* Detailed Card Close Button (Mobile Only) */}
               <button
                 onClick={onClose}
-                className="absolute top-8 right-8 w-8 h-8 flex items-center justify-center bg-white/5 border border-white/10 text-white/40 rounded-full active:scale-95 transition-all"
+                className="absolute top-8 right-6 w-8 h-8 flex items-center justify-center bg-white/5 border border-white/10 text-white/40 rounded-full active:scale-95 transition-all"
               >
                 <X size={16} />
               </button>
 
-              <h1 className="font-display text-2xl text-foreground tracking-[0.1em] uppercase leading-tight mb-2 pr-12">
+              <h1 className="font-display text-xl sm:text-2xl text-foreground tracking-[0.1em] uppercase leading-normal mb-2 pr-14 mt-1">
                 {product.name}
               </h1>
-              <p className="font-display text-sm tracking-[0.4em] text-primary/80 mb-6 uppercase">
+              <p className="font-display text-sm tracking-[0.4em] text-primary/80 mb-8 uppercase">
                 {formatPrice(product.price)}
               </p>
 
