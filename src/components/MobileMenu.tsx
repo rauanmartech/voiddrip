@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { X, ShoppingBag, Home, LayoutGrid, Package, TrendingUp, Info } from "lucide-react";
+import { X, Home, LayoutGrid, Package, TrendingUp, Info } from "lucide-react";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -13,7 +13,6 @@ const menuItems = [
   { label: "Acessórios", path: "/acessorios", icon: <LayoutGrid size={16} /> },
   { label: "Em Alta", path: "/#trending", icon: <TrendingUp size={16} /> },
   { label: "Sobre", path: "/sobre", icon: <Info size={16} /> },
-  { label: "Carrinho", path: "#", icon: <ShoppingBag size={16} /> },
 ];
 
 const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
