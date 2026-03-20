@@ -64,9 +64,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       toast.success(`${product.name} adicionado ao carrinho`);
       return [...prev, { id: `${product.id}-${size}-${color}`, product, quantity: 1, size, color }];
     });
-    
-    // Automatically open cart when adding
-    setIsCartOpen(true);
   };
 
   const removeFromCart = (id: string) => {
