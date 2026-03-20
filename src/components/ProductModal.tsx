@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { Product } from "./ProductGrid";
 import { ShoppingBag, ChevronLeft, ChevronRight, X, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 interface ProductModalProps {
   product: Product;
@@ -17,6 +19,21 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
   const [showHeader, setShowHeader] = useState(true);
+  const { addToCart } = useCart();
+
+  const handleAddToCart = () => {
+    if (product.sizes?.length && !selectedSize) {
+      toast.error("Selecione um tamanho");
+      return;
+    }
+    if (product.colors?.length && !selectedColor) {
+      toast.error("Selecione uma cor");
+      return;
+    }
+
+    addToCart(product, selectedSize, selectedColor);
+    onClose(); // Fecha o modal para focar no carrinho
+  };
 
   // Image prefetch
   useEffect(() => {
@@ -251,6 +268,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
           {/* Floating Action Bar — Pure Void Vibe */}
           <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent z-[180]">
             <button
+              onClick={handleAddToCart}
               disabled={product.stock_quantity <= 0}
               className={`w-full py-4 px-8 border font-display tracking-[0.5em] text-[10px] flex items-center justify-between transition-all duration-500 overflow-hidden group ${product.stock_quantity > 0
                   ? "border-primary bg-white text-black hover:shadow-[0_0_30px_white]"
@@ -356,6 +374,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
               )}
 
               <button
+                onClick={handleAddToCart}
                 disabled={product.stock_quantity <= 0}
                 className={`max-w-xs w-full py-5 border font-display tracking-[0.5em] text-xs flex items-center justify-center gap-3 transition-all duration-500 ${product.stock_quantity > 0
                     ? "border-primary text-primary hover:bg-primary hover:text-black shadow-[0_0_50px_rgba(255,255,255,0.05)]"

@@ -3,6 +3,7 @@ import { ShoppingBag, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import MobileMenu from "./MobileMenu";
 import { usePrefetchProducts } from "@/hooks/useProducts";
+import { useCart } from "@/contexts/CartContext";
 
 const navLinks = [
   { label: "Loja", to: "/" },
@@ -15,6 +16,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { prefetchProducts, prefetchTrending } = usePrefetchProducts();
+  const { itemCount, toggleCart } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -52,14 +54,30 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            <button className="text-muted-foreground hover:text-foreground transition-colors duration-300">
+            <button 
+              onClick={toggleCart}
+              className="relative text-muted-foreground hover:text-foreground transition-colors duration-300"
+            >
               <ShoppingBag size={18} strokeWidth={1.5} />
+              {itemCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-primary text-black text-[9px] font-bold font-display w-4 h-4 flex items-center justify-center rounded-full animate-in zoom-in">
+                  {itemCount}
+                </span>
+              )}
             </button>
           </div>
 
           <div className="md:hidden flex items-center gap-6">
-            <button className="text-muted-foreground hover:text-foreground transition-colors">
+            <button 
+              onClick={toggleCart}
+              className="relative text-muted-foreground hover:text-foreground transition-colors"
+            >
               <ShoppingBag size={18} strokeWidth={1.5} />
+              {itemCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-primary text-black text-[9px] font-bold font-display w-4 h-4 flex items-center justify-center rounded-full animate-in zoom-in">
+                  {itemCount}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setIsMobileMenuOpen(true)}

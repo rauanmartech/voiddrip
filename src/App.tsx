@@ -7,6 +7,8 @@ import { Suspense, lazy } from "react";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminArea from "./pages/AdminArea.tsx";
+import { CartProvider } from "./contexts/CartContext.tsx";
+import { CartDrawer } from "./components/CartDrawer.tsx";
 
 // Route-level code splitting — these bundles only load when the user navigates there
 const About = lazy(() => import("./pages/About.tsx"));
@@ -34,23 +36,26 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/sobre" element={<About />} />
-            <Route path="/acessorios" element={<Accessories />} />
-            <Route path="/colecao" element={<Collection />} />
-            <Route path="/admin" element={<AdminArea />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </TooltipProvider>
+    <CartProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <CartDrawer />
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/sobre" element={<About />} />
+              <Route path="/acessorios" element={<Accessories />} />
+              <Route path="/colecao" element={<Collection />} />
+              <Route path="/admin" element={<AdminArea />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TooltipProvider>
+    </CartProvider>
   </QueryClientProvider>
 );
 
