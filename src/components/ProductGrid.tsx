@@ -171,9 +171,11 @@ const ProductGrid = ({ activeCategory, showOnlyAvailable, sortBy, limit = null }
         </>
       )}
 
-      {selectedProduct && (
-        <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
-      )}
+      <AnimatePresence>
+        {selectedProduct && (
+          <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+        )}
+      </AnimatePresence>
     </section>
   );
 };

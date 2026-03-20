@@ -112,16 +112,18 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
                   }}
                 />
                 <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse" />
-                <span className="relative font-display text-[7px] tracking-[0.4em] text-foreground select-none uppercase font-bold">
-                  ESGOTADO
+                <span className="relative font-display text-[7px] tracking-[1em] text-foreground select-none uppercase font-bold pl-[1em]">
+                  OUT
                 </span>
               </div>
             </div>
 
             <div className="absolute inset-0 bg-black/80 z-10 flex flex-col items-center justify-center gap-2 overflow-hidden px-4">
-              <div className="relative mt-1">
-                <span className="font-display text-4xl select-none opacity-40 animate-glitch-1 inline-block text-white">:(</span>
-                <span className="absolute inset-0 font-display text-4xl select-none opacity-20 animate-glitch-2 text-primary pointer-events-none">:(</span>
+              <div className="relative mt-1 select-none">
+                {/* Subtle Glitch: Slight opacity flickers and 1px shifts */}
+                <span className="font-display text-4xl opacity-40 text-white animate-pulse">:(</span>
+                <span className="absolute inset-0 font-display text-4xl opacity-10 text-primary pointer-events-none translate-x-[1px] translate-y-[-1px] animate-[pulse_0.1s_infinite]">:(</span>
+                <span className="absolute inset-0 font-display text-4xl opacity-5 text-white pointer-events-none translate-x-[-1px] translate-y-[1px] animate-[pulse_0.2s_infinite]">:(</span>
               </div>
             </div>
           </>
