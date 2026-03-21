@@ -317,16 +317,13 @@ export default function Checkout() {
 
             {step === "shipping" && (
               <motion.div key="shipping" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className={STYLES.stepContainer}>
-                <div className="flex items-center justify-between mb-8">
+                <div className="mb-8">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                       <MapPin size={20} />
                     </div>
                     <h2 className="font-display text-xl uppercase tracking-widest">Endereço de Entrega</h2>
                   </div>
-                  <button onClick={() => setStep("identification")} className="text-[9px] uppercase tracking-widest text-muted-foreground flex items-center gap-2 hover:text-white transition-colors">
-                    <ArrowLeft size={10} /> Voltar
-                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
@@ -417,14 +414,13 @@ export default function Checkout() {
                   </motion.div>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-4 pt-8">
-                  <Button 
-                    variant="outline"
+                <div className="flex flex-col md:flex-row items-center gap-6 pt-8">
+                  <button 
                     onClick={() => setStep("identification")}
-                    className="w-full md:w-auto px-8 h-14 border-white/10 text-white hover:bg-white/5 tracking-[0.2em] font-display text-[10px]"
+                    className="order-2 md:order-1 text-[10px] tracking-[0.2em] text-muted-foreground hover:text-white transition-colors font-display flex items-center gap-2 uppercase font-bold"
                   >
-                    VOLTAR
-                  </Button>
+                    <ArrowLeft size={12} /> Voltar
+                  </button>
                   <Button 
                     onClick={() => {
                       const newErrors: string[] = [];
@@ -440,7 +436,7 @@ export default function Checkout() {
                       }
                       setStep("payment");
                     }}
-                    className="flex-1 h-14 bg-white text-black font-display tracking-[0.3em] font-bold hover:bg-primary transition-colors text-[11px]"
+                    className="order-1 md:order-2 w-full md:flex-1 h-14 bg-white text-black font-display tracking-[0.3em] font-bold hover:bg-primary transition-colors text-[11px]"
                   >
                     CONTINUAR PARA PAGAMENTO
                   </Button>
@@ -491,18 +487,17 @@ export default function Checkout() {
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-4">
-                  <Button 
-                    variant="outline"
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                  <button 
                     onClick={() => setStep("shipping")}
-                    className="w-full md:w-auto px-8 h-16 border-white/10 text-white hover:bg-white/5 tracking-[0.2em] font-display text-[10px]"
+                    className="order-2 md:order-1 text-[10px] tracking-[0.2em] text-muted-foreground hover:text-white transition-colors font-display flex items-center gap-2 uppercase font-bold"
                   >
-                    VOLTAR
-                  </Button>
+                    <ArrowLeft size={12} /> Voltar
+                  </button>
                   <button 
                     onClick={handleFinalizeOrder}
                     disabled={isLoading}
-                    className="flex-1 btn-neon-green py-6 flex items-center justify-center gap-3 transition-all font-bold text-[12px] tracking-[0.4em]"
+                    className="order-1 md:order-2 w-full md:flex-1 btn-neon-green py-6 flex items-center justify-center gap-3 transition-all font-bold text-[12px] tracking-[0.4em]"
                   >
                     {isLoading ? <Loader2 className="animate-spin" /> : `FECHAR PEDIDO DE ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}`}
                   </button>

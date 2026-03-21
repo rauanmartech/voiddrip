@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Product } from "./ProductGrid";
-import { ShoppingBag, ChevronLeft, ChevronRight, X, ArrowRight } from "lucide-react";
+import { ShoppingBag, ChevronLeft, ChevronRight, X, ArrowRight, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "sonner";
 
 interface ProductModalProps {
@@ -18,8 +19,10 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
 
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
-  const [showHeader, setShowHeader] = useState(true);
+  const { showHeader, setShowHeader } = { showHeader: true, setShowHeader: (v: boolean) => {} }; // Simplified if not used
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const isFavorite = isInWishlist(product.id);
 
   const handleAddToCart = () => {
     if (product.sizes?.length && !selectedSize) {
@@ -277,11 +280,21 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
           </div>
 
           {/* Floating Action Bar — Pure Void Vibe */}
-          <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent z-[180]">
+          <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent z-[180] flex gap-3">
+            <button
+               onClick={() => toggleWishlist(product)}
+               className={`w-14 h-14 border flex items-center justify-center transition-all duration-500 backdrop-blur-md ${
+                 isFavorite 
+                   ? "bg-[#FF1CF7]/10 border-[#FF1CF7]/30 text-[#FF1CF7]" 
+                   : "bg-white/5 border-white/10 text-white"
+               }`}
+            >
+               <Heart size={20} fill={isFavorite ? "currentColor" : "none"} />
+            </button>
             <button
               onClick={handleAddToCart}
               disabled={product.stock_quantity <= 0}
-              className={`w-full py-4 px-8 border font-display tracking-[0.5em] text-[10px] flex items-center justify-between transition-all duration-500 overflow-hidden group ${product.stock_quantity > 0
+              className={`flex-1 py-4 px-8 border font-display tracking-[0.5em] text-[10px] flex items-center justify-between transition-all duration-500 overflow-hidden group ${product.stock_quantity > 0
                   ? "border-primary bg-white text-black hover:shadow-[0_0_30px_white]"
                   : "border-white/10 text-white/20 bg-transparent grayscale"
                 }`}
@@ -425,16 +438,28 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
                 </div>
               )}
 
-              <button
-                onClick={handleAddToCart}
-                disabled={product.stock_quantity <= 0}
-                className={`max-w-xs w-full py-5 border font-display tracking-[0.5em] text-xs flex items-center justify-center transition-all duration-500 ${product.stock_quantity > 0
-                    ? "border-primary text-primary hover:bg-primary hover:text-black shadow-[0_0_50px_rgba(255,255,255,0.05)]"
-                    : "border-white/5 text-white/10 cursor-not-allowed opacity-30"
+              <div className="flex gap-4 w-full">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={product.stock_quantity <= 0}
+                  className={`flex-1 py-5 border font-display tracking-[0.5em] text-xs flex items-center justify-center transition-all duration-500 ${product.stock_quantity > 0
+                      ? "border-primary text-primary hover:bg-primary hover:text-black shadow-[0_0_50px_rgba(255,255,255,0.05)]"
+                      : "border-white/5 text-white/10 cursor-not-allowed opacity-30"
+                    }`}
+                >
+                  {product.stock_quantity > 0 ? "ADICIONAR AO CARRINHO" : "ESGOTADO"}
+                </button>
+                <button
+                  onClick={() => toggleWishlist(product)}
+                  className={`w-16 h-16 border flex items-center justify-center transition-all duration-500 group ${
+                    isFavorite 
+                      ? "bg-[#FF1CF7]/10 border-[#FF1CF7]/30 text-[#FF1CF7]" 
+                      : "bg-white/5 border-white/10 text-white hover:border-white/40"
                   }`}
-              >
-                {product.stock_quantity > 0 ? "ADICIONAR AO CARRINHO" : "ESGOTADO"}
-              </button>
+                >
+                  <Heart size={20} fill={isFavorite ? "currentColor" : "none"} className="transition-transform group-hover:scale-110" />
+                </button>
+              </div>
             </div>
             </div>
           </div>

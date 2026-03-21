@@ -1,6 +1,8 @@
 import { Product } from "./ProductGrid";
-import { Flame } from "lucide-react";
+import { Flame, Heart } from "lucide-react";
 import { useLazyImage } from "@/hooks/useLazyImage";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { motion } from "framer-motion";
 
 interface ProductCardProps {
   product: Product;
@@ -30,8 +32,16 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
   // Lazy-load: image src is only set once the card scrolls into view
   const { containerRef, loadedSrc, isLoaded, onLoad } = useLazyImage(firstImage, { eager });
 
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const isFavorite = isInWishlist(product.id);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
+  };
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleWishlist(product);
   };
 
   return (
@@ -93,6 +103,26 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
             </div>
           </div>
         )}
+
+        {/* Wishlist Button */}
+        <div className="absolute top-3 right-3 z-30">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleWishlist}
+            className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-500 ${
+              isFavorite 
+                ? "bg-[#FF1CF7]/20 border-[#FF1CF7]/50 text-[#FF1CF7] shadow-[0_0_15px_rgba(255,28,247,0.3)]" 
+                : "bg-black/20 border-white/10 text-white hover:border-white/40"
+            }`}
+          >
+            <Heart 
+              size={14} 
+              fill={isFavorite ? "currentColor" : "none"} 
+              className={isFavorite ? "drop-shadow-[0_0_5px_rgba(255,28,247,0.8)] transition-all" : ""}
+            />
+          </motion.button>
+        </div>
 
 
         {product.stock_quantity <= 0 && (

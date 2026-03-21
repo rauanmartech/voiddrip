@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { ShoppingBag, Menu, User, LogOut, Settings, LayoutDashboard } from "lucide-react";
+import { ShoppingBag, Menu, User, LogOut, Settings, LayoutDashboard, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import MobileMenu from "./MobileMenu";
 import { usePrefetchProducts } from "@/hooks/useProducts";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { AuthModal } from "./AuthModal";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -23,6 +24,7 @@ const Navbar = () => {
   
   const { prefetchProducts, prefetchTrending } = usePrefetchProducts();
   const { itemCount, toggleCart } = useCart();
+  const { wishlistCount } = useWishlist();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -123,6 +125,18 @@ const Navbar = () => {
               )}
             </div>
 
+            <Link 
+              to="/favoritos"
+              className="relative text-muted-foreground hover:text-foreground transition-all duration-300 group"
+            >
+              <Heart size={18} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-[#FF1CF7] text-white text-[9px] font-bold font-display w-4 h-4 flex items-center justify-center rounded-full animate-in zoom-in shadow-[0_0_10px_rgba(255,28,247,0.5)]">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+
             <button 
               onClick={toggleCart}
               className="relative text-muted-foreground hover:text-foreground transition-colors duration-300"
@@ -145,6 +159,17 @@ const Navbar = () => {
                 <User size={16} strokeWidth={2} />
               </button>
             )}
+            <Link 
+              to="/favoritos"
+              className="relative text-muted-foreground hover:text-foreground transition-all duration-300 group"
+            >
+              <Heart size={18} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-[#FF1CF7] text-white text-[9px] font-bold font-display w-4 h-4 flex items-center justify-center rounded-full animate-in zoom-in shadow-[0_0_10px_rgba(255,28,247,0.5)]">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
             <button 
               onClick={toggleCart}
               className="relative text-muted-foreground hover:text-foreground transition-colors"
