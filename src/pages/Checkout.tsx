@@ -19,7 +19,8 @@ import {
   Smartphone,
   User as UserIcon,
   Mail,
-  ShoppingBag
+  ShoppingBag,
+  Star
 } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,41 @@ export default function Checkout() {
     }
   }, [items, step, navigate, isInitialized]);
 
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [showSavedAddresses, setShowSavedAddresses] = useState(false);
+
+  useEffect(() => {
+    if (user && step === "shipping") {
+      fetchSavedAddresses();
+    }
+  }, [user, step]);
+
+  const fetchSavedAddresses = async () => {
+    const { data, error } = await supabase
+      .from("addresses")
+      .select("*")
+      .order("is_primary", { ascending: false });
+    
+    if (data && data.length > 0) {
+      setSavedAddresses(data);
+      const primary = data.find(a => a.is_primary) || data[0];
+      applySavedAddress(primary);
+    }
+  };
+
+  const applySavedAddress = (saved: any) => {
+    setAddress({
+      zipCode: saved.zip_code,
+      street: saved.street,
+      number: saved.number,
+      complement: saved.complement || "",
+      city: saved.city,
+      state: saved.state,
+      phone: address.phone // Keep current phone if already typed
+    });
+    setBuyerData(prev => ({ ...prev, fullName: saved.full_name }));
+  };
+
   const handleZipCodeLookup = async (cep: string) => {
     const cleaned = cep.replace(/\D/g, "");
     if (cleaned.length === 8) {
@@ -159,13 +195,15 @@ export default function Checkout() {
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
       if (itemsError) throw itemsError;
 
-      // 3. Create Address
+      // 3. Create Address (Saving checkout snapshot)
       const { error: addrError } = await supabase.from("addresses").insert({
         order_id: order.id,
         user_id: user?.id || null,
+        full_name: buyerData.fullName, // New requirement
         street: address.street,
         number: address.number,
         complement: address.complement,
+        neighborhood: "Centro", // Default or extract if avail
         zip_code: address.zipCode,
         city: address.city,
         state: address.state,
@@ -324,6 +362,56 @@ export default function Checkout() {
                     </div>
                     <h2 className="font-display text-xl uppercase tracking-widest">Endereço de Entrega</h2>
                   </div>
+                  
+                  {user && savedAddresses.length > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6"
+                    >
+                      <button 
+                        type="button"
+                        onClick={() => setShowSavedAddresses(!showSavedAddresses)}
+                        className="text-[10px] tracking-widest text-primary uppercase font-bold hover:underline py-2 flex items-center gap-2"
+                      >
+                        <ShieldCheck size={14} /> {showSavedAddresses ? "Ocultar meus endereços" : "Usar um endereço salvo"}
+                      </button>
+                      
+                      <AnimatePresence>
+                        {showSavedAddresses && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-hidden mt-4"
+                          >
+                            {savedAddresses.map((sa) => (
+                              <button
+                                key={sa.id}
+                                type="button"
+                                onClick={() => {
+                                  applySavedAddress(sa);
+                                  setShowSavedAddresses(false);
+                                  toast.success(`Endereço "${sa.full_name}" aplicado.`);
+                                }}
+                                className={`text-left p-4 border transition-all ${
+                                  address.zipCode === sa.zip_code && address.number === sa.number
+                                  ? "bg-white/10 border-primary"
+                                  : "bg-white/[0.02] border-white/5 hover:border-white/20"
+                                }`}
+                              >
+                                <div className="flex justify-between items-start mb-1">
+                                  <span className="font-display text-[9px] tracking-widest uppercase truncate">{sa.full_name}</span>
+                                  {sa.is_primary && <Star size={10} className="text-primary" fill="currentColor" />}
+                                </div>
+                                <p className="text-[10px] text-muted-foreground truncate">{sa.street}, {sa.number}</p>
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
@@ -592,6 +680,7 @@ export default function Checkout() {
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
         onSuccess={() => setIsAuthModalOpen(false)} 
+        mode="checkout"
       />
     </div>
   );

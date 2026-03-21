@@ -8,9 +8,10 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  mode?: "login" | "checkout";
 }
 
-export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
+export const AuthModal = ({ isOpen, onClose, onSuccess, mode = "login" }: AuthModalProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -22,10 +23,12 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
+      const redirectPath = mode === "checkout" ? "/checkout" : window.location.pathname;
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/checkout`
+          redirectTo: `${window.location.origin}${redirectPath}`
         }
       });
       if (error) throw error;

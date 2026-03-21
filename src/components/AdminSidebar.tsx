@@ -7,6 +7,8 @@ import { QUERY_KEYS } from "@/hooks/useProducts";
 
 const AdminSidebar = () => {
   const [session, setSession] = useState<any>(null);
+  const ADMIN_EMAIL = "rauanrocha.martech@gmail.com";
+  const isAdmin = session?.user?.email === ADMIN_EMAIL;
   
   // Modal & View states
   const [showModal, setShowModal] = useState(false);
@@ -53,7 +55,7 @@ const AdminSidebar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (!session) return null;
+  if (!session || !isAdmin) return null;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

@@ -49,20 +49,23 @@ const AdminArea = () => {
     await supabase.auth.signOut();
   };
 
+  const ADMIN_EMAIL = "rauanrocha.martech@gmail.com";
+  const isAdmin = session?.user?.email === ADMIN_EMAIL;
+
   return (
-    <div className="min-h-screen bg-background relative flex flex-col">
+    <div className="min-h-screen bg-background relative flex flex-col uppercase">
       <Navbar />
 
       <main className="flex-1 pt-32 pb-20 relative spacetime-grid flex items-center justify-center">
         <CosmicElements />
         <div className="relative z-10 w-full max-w-md px-6">
           {!session ? (
-            <div className="product-card p-8 text-center bg-card/80 backdrop-blur-sm">
+            <div className="product-card p-8 text-center bg-card/80 backdrop-blur-sm border-white/10">
               <h1 className="font-display text-2xl tracking-[0.2em] text-foreground mb-2">
                 ACESSO RESTRITO
               </h1>
-              <p className="font-body text-xs text-muted-foreground mb-8">
-                Painel do Administrador
+              <p className="font-body text-[10px] tracking-[0.3em] text-muted-foreground mb-8">
+                PAINEL DO ADMINISTRADOR
               </p>
 
               <form onSubmit={handleLogin} className="flex flex-col gap-4 text-left">
@@ -72,41 +75,56 @@ const AdminArea = () => {
                   </div>
                 )}
                 <div className="flex flex-col gap-1">
-                  <label className="font-display text-[10px] tracking-widest text-muted-foreground">EMAIL</label>
+                  <label className="font-display text-[8px] tracking-[0.4em] text-muted-foreground">EMAIL</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-background border border-border px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="bg-background border border-border px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors font-display"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="font-display text-[10px] tracking-widest text-muted-foreground">SENHA</label>
+                  <label className="font-display text-[8px] tracking-[0.4em] text-muted-foreground">SENHA</label>
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-background border border-border px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="bg-background border border-border px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors font-display"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-explore mt-4 w-full text-center"
+                  className="btn-explore mt-4 w-full text-center py-4 text-[10px]"
                 >
-                  {loading ? "ENTRANDO..." : "ACESSAR PAINEL"}
+                  {loading ? "SINCROZINANDO..." : "AUTENTICAR ACESSO"}
                 </button>
               </form>
             </div>
+          ) : !isAdmin ? (
+            <div className="product-card p-8 text-center bg-card/80 backdrop-blur-sm border-red-500/20">
+              <h1 className="font-display text-xl tracking-[0.2em] text-red-500 mb-2">
+                ACESSO NEGADO
+              </h1>
+              <p className="font-body text-xs text-muted-foreground mb-8">
+                Esta área é restrita para o desenvolvedor principal.
+              </p>
+              <button
+                onClick={handleLogout}
+                className="btn-explore w-full text-center py-3"
+              >
+                SAIR
+              </button>
+            </div>
           ) : (
-            <div className="product-card p-8 text-center bg-card/80 backdrop-blur-sm">
-              <h1 className="font-display text-2xl tracking-[0.2em] text-foreground mb-2">
+            <div className="product-card p-8 text-center bg-card/80 backdrop-blur-sm border-primary/20">
+              <h1 className="font-display text-2xl tracking-[0.2em] text-primary mb-2">
                 PAINEL ADM
               </h1>
               <p className="font-body text-xs text-muted-foreground mb-8">
-                Logado como: {session.user.email}
+                DOMÍNIO DE: {session.user.email}
               </p>
               
               <div className="flex flex-col gap-4">

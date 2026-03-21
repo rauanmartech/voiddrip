@@ -19,6 +19,7 @@ const Collection = lazy(() => import("./pages/Collection.tsx"));
 const Favorites = lazy(() => import("./pages/Favorites.tsx"));
 const ProductDetails = lazy(() => import("./pages/ProductDetails.tsx"));
 const Checkout = lazy(() => import("./pages/Checkout.tsx"));
+const Profile = lazy(() => import("./pages/Profile.tsx"));
 
 // Minimal page loader
 const PageLoader = () => (
@@ -58,6 +59,7 @@ const App = () => (
                   <Route path="/favoritos" element={<Favorites />} />
                   <Route path="/produto/:id" element={<ProductDetails />} />
                   <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/perfil" element={<Profile />} />
                   <Route path="/admin" element={<AdminArea />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
