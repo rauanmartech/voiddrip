@@ -14,6 +14,7 @@ import { CartDrawer } from "./components/CartDrawer.tsx";
 const About = lazy(() => import("./pages/About.tsx"));
 const Accessories = lazy(() => import("./pages/Accessories.tsx"));
 const Collection = lazy(() => import("./pages/Collection.tsx"));
+const ProductDetails = lazy(() => import("./pages/ProductDetails.tsx"));
 
 // Minimal page loader shown during lazy chunk fetch
 const PageLoader = () => (
@@ -40,14 +41,15 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <CartDrawer />
         <BrowserRouter>
+          <CartDrawer />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/sobre" element={<About />} />
               <Route path="/acessorios" element={<Accessories />} />
               <Route path="/colecao" element={<Collection />} />
+              <Route path="/produto/:id" element={<ProductDetails />} />
               <Route path="/admin" element={<AdminArea />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

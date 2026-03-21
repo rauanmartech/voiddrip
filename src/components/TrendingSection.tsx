@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Product } from "./ProductGrid";
-import ProductModal from "./ProductModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { trackProductView } from "@/lib/analytics";
 import { useTrendingProducts } from "@/hooks/useProducts";
@@ -98,13 +97,13 @@ const TrendingCard = ({ product, isMain = false, index, onClick }: TrendingCardP
 };
 
 const TrendingSection = () => {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const navigate = useNavigate();
 
   // ── React Query: shares cache with ProductGrid, no duplicate request ────────
   const { data: trendingProducts = [], isLoading } = useTrendingProducts();
 
   const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
+    navigate(`/produto/${product.id}`);
     trackProductView(product.id).catch(err => console.error("Tracking error:", err));
   };
 
@@ -163,11 +162,6 @@ const TrendingSection = () => {
         </div>
       </div>
 
-      <AnimatePresence>
-        {selectedProduct && (
-          <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
-        )}
-      </AnimatePresence>
     </section>
   );
 };

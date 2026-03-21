@@ -1,9 +1,8 @@
 import ProductCard from "./ProductCard";
-import ProductModal from "./ProductModal";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { trackProductView } from "@/lib/analytics";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useProducts } from "@/hooks/useProducts";
 
 export interface Product {
@@ -28,13 +27,13 @@ interface ProductGridProps {
 }
 
 const ProductGrid = ({ activeCategory, showOnlyAvailable, sortBy, limit = null }: ProductGridProps) => {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const navigate = useNavigate();
 
   // ── React Query: cached, shared, no duplicate fetches ──────────────────────
   const { data: products = [], isLoading } = useProducts();
 
   const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
+    navigate(`/produto/${product.id}`);
     trackProductView(product.id).catch(err => console.error("Tracking error:", err));
   };
 
@@ -171,11 +170,6 @@ const ProductGrid = ({ activeCategory, showOnlyAvailable, sortBy, limit = null }
         </>
       )}
 
-      <AnimatePresence>
-        {selectedProduct && (
-          <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
-        )}
-      </AnimatePresence>
     </section>
   );
 };
