@@ -50,6 +50,21 @@ export default function Checkout() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
+
+  // Shake animation configuration
+  const shakeAnimation = {
+    shake: {
+      x: [0, -10, 10, -10, 10, 0],
+      transition: { duration: 0.4 }
+    }
+  };
+
+  // Auto-scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setErrors([]); // Clear errors on step change
+  }, [step]);
 
   // Form States - Identification
   const [buyerData, setBuyerData] = useState({
@@ -238,31 +253,37 @@ export default function Checkout() {
                 </div>
 
                 <div className="space-y-6">
-                  <div>
-                    <label className={STYLES.label}>Nome Completo</label>
-                    <div className="relative">
-                      <Input 
-                        placeholder="Seu nome completo" 
-                        value={buyerData.fullName} 
-                        onChange={e => setBuyerData(prev => ({ ...prev, fullName: e.target.value }))}
-                        className={STYLES.input}
-                      />
-                    </div>
-                  </div>
+                  <motion.div animate={errors.includes("fullName") ? "shake" : ""} variants={shakeAnimation}>
+                    <label className={STYLES.label}>
+                      Nome Completo {errors.includes("fullName") && <span className="text-red-500 ml-1">✕</span>}
+                    </label>
+                    <Input 
+                      placeholder="Seu nome completo" 
+                      value={buyerData.fullName} 
+                      onChange={e => {
+                        setBuyerData(prev => ({ ...prev, fullName: e.target.value }));
+                        setErrors(prev => prev.filter(err => err !== "fullName"));
+                      }}
+                      className={`${STYLES.input} ${errors.includes("fullName") ? "border-red-500" : ""}`}
+                    />
+                  </motion.div>
 
-                  <div>
-                    <label className={STYLES.label}>E-mail</label>
-                    <div className="relative">
-                      <Input 
-                        placeholder="seu@e-mail.com" 
-                        value={buyerData.email} 
-                        onChange={e => setBuyerData(prev => ({ ...prev, email: e.target.value }))}
-                        disabled={!!user}
-                        className={STYLES.input}
-                      />
-                      {user && <span className="text-[10px] text-primary/60 mt-2 block tracking-widest uppercase font-bold">Logado via {user.app_metadata?.provider || 'Auth'}</span>}
-                    </div>
-                  </div>
+                  <motion.div animate={errors.includes("email") ? "shake" : ""} variants={shakeAnimation}>
+                    <label className={STYLES.label}>
+                      E-mail {errors.includes("email") && <span className="text-red-500 ml-1">✕</span>}
+                    </label>
+                    <Input 
+                      placeholder="seu@e-mail.com" 
+                      value={buyerData.email} 
+                      onChange={e => {
+                        setBuyerData(prev => ({ ...prev, email: e.target.value }));
+                        setErrors(prev => prev.filter(err => err !== "email"));
+                      }}
+                      disabled={!!user}
+                      className={`${STYLES.input} ${errors.includes("email") ? "border-red-500" : ""}`}
+                    />
+                    {user && <span className="text-[10px] text-primary/60 mt-2 block tracking-widest uppercase font-bold">Logado via {user.app_metadata?.provider || 'Auth'}</span>}
+                  </motion.div>
 
                   {!user && (
                     <Card className="p-6 bg-primary/5 border-primary/20 flex items-center justify-between mt-8">
@@ -275,8 +296,13 @@ export default function Checkout() {
                 <div className="flex justify-end pt-8">
                   <Button 
                     onClick={() => {
-                      if (!buyerData.fullName || !buyerData.email) {
-                        toast.error("Por favor, preencha nome e e-mail.");
+                      const newErrors: string[] = [];
+                      if (!buyerData.fullName) newErrors.push("fullName");
+                      if (!buyerData.email) newErrors.push("email");
+                      
+                      if (newErrors.length > 0) {
+                        setErrors(newErrors);
+                        toast.error("Por favor, preencha os campos marcados.");
                         return;
                       }
                       setStep("shipping");
@@ -304,8 +330,10 @@ export default function Checkout() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-                  <div className="md:col-span-2">
-                    <label className={STYLES.label}>CEP</label>
+                  <motion.div className="md:col-span-2" animate={errors.includes("zipCode") ? "shake" : ""} variants={shakeAnimation}>
+                    <label className={STYLES.label}>
+                      CEP {errors.includes("zipCode") && <span className="text-red-500 ml-1">✕</span>}
+                    </label>
                     <div className="relative">
                       <Input 
                         placeholder="00000-000" 
@@ -313,23 +341,44 @@ export default function Checkout() {
                         onChange={(e) => {
                           const val = e.target.value.substring(0, 9);
                           setAddress(prev => ({ ...prev, zipCode: val }));
+                          setErrors(prev => prev.filter(err => err !== "zipCode"));
                           handleZipCodeLookup(val);
                         }}
-                        className={STYLES.input}
+                        className={`${STYLES.input} ${errors.includes("zipCode") ? "border-red-500" : ""}`}
                       />
                       {isLoading && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-primary" />}
                     </div>
-                  </div>
+                  </motion.div>
                   
-                  <div className="md:col-span-4">
-                    <label className={STYLES.label}>Rua / Logradouro</label>
-                    <Input placeholder="Nome da rua" value={address.street} onChange={e => setAddress(prev => ({ ...prev, street: e.target.value }))} className={STYLES.input} />
-                  </div>
+                  <motion.div className="md:col-span-4" animate={errors.includes("street") ? "shake" : ""} variants={shakeAnimation}>
+                    <label className={STYLES.label}>
+                      Rua / Logradouro {errors.includes("street") && <span className="text-red-500 ml-1">✕</span>}
+                    </label>
+                    <Input 
+                      placeholder="Nome da rua" 
+                      value={address.street} 
+                      onChange={e => {
+                        setAddress(prev => ({ ...prev, street: e.target.value }));
+                        setErrors(prev => prev.filter(err => err !== "street"));
+                      }} 
+                      className={`${STYLES.input} ${errors.includes("street") ? "border-red-500" : ""}`} 
+                    />
+                  </motion.div>
 
-                  <div className="md:col-span-2">
-                    <label className={STYLES.label}>Número</label>
-                    <Input placeholder="Ex: 123" value={address.number} onChange={e => setAddress(prev => ({ ...prev, number: e.target.value }))} className={STYLES.input} />
-                  </div>
+                  <motion.div className="md:col-span-2" animate={errors.includes("number") ? "shake" : ""} variants={shakeAnimation}>
+                    <label className={STYLES.label}>
+                      Número {errors.includes("number") && <span className="text-red-500 ml-1">✕</span>}
+                    </label>
+                    <Input 
+                      placeholder="Ex: 123" 
+                      value={address.number} 
+                      onChange={e => {
+                        setAddress(prev => ({ ...prev, number: e.target.value }));
+                        setErrors(prev => prev.filter(err => err !== "number"));
+                      }} 
+                      className={`${STYLES.input} ${errors.includes("number") ? "border-red-500" : ""}`} 
+                    />
+                  </motion.div>
 
                   <div className="md:col-span-4">
                     <label className={STYLES.label}>Complemento</label>
@@ -346,16 +395,26 @@ export default function Checkout() {
                     <Input placeholder="UF" value={address.state} onChange={e => setAddress(prev => ({ ...prev, state: e.target.value }))} className={STYLES.input} />
                   </div>
 
-                  <div className="md:col-span-6 border-t border-white/5 pt-6 mt-4">
+                  <motion.div className="md:col-span-6 border-t border-white/5 pt-6 mt-4" animate={errors.includes("phone") ? "shake" : ""} variants={shakeAnimation}>
                     <div className="flex items-center gap-3 mb-6">
                        <Smartphone size={16} className="text-primary" />
                        <div className="flex flex-col">
-                          <label className="text-[10px] tracking-widest uppercase font-bold text-white">Telefone para Entrega</label>
+                          <label className={`text-[10px] tracking-widest uppercase font-bold ${errors.includes("phone") ? "text-red-500" : "text-white"}`}>
+                            Telefone para Entrega {errors.includes("phone") && <span className="ml-1">✕</span>}
+                          </label>
                           <span className="text-[9px] text-muted-foreground">Será usado exclusivamente para avisos de entrega via WhatsApp.</span>
                        </div>
                     </div>
-                    <Input placeholder="(00) 00000-0000" value={address.phone} onChange={e => setAddress(prev => ({ ...prev, phone: e.target.value }))} className={STYLES.input} />
-                  </div>
+                    <Input 
+                      placeholder="(00) 00000-0000" 
+                      value={address.phone} 
+                      onChange={e => {
+                        setAddress(prev => ({ ...prev, phone: e.target.value }));
+                        setErrors(prev => prev.filter(err => err !== "phone"));
+                      }} 
+                      className={`${STYLES.input} ${errors.includes("phone") ? "border-red-500" : ""}`} 
+                    />
+                  </motion.div>
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4 pt-8">
@@ -368,8 +427,15 @@ export default function Checkout() {
                   </Button>
                   <Button 
                     onClick={() => {
-                      if (!address.zipCode || !address.street || !address.number || !address.phone) {
-                        toast.error("Preencha os campos obrigatórios.");
+                      const newErrors: string[] = [];
+                      if (!address.zipCode) newErrors.push("zipCode");
+                      if (!address.street) newErrors.push("street");
+                      if (!address.number) newErrors.push("number");
+                      if (!address.phone) newErrors.push("phone");
+
+                      if (newErrors.length > 0) {
+                        setErrors(newErrors);
+                        toast.error("Por favor, preencha os campos marcados.");
                         return;
                       }
                       setStep("payment");

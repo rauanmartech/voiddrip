@@ -134,14 +134,17 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                   
                   <button 
                     onClick={handleLogout}
-                    className="flex items-center gap-4 group w-full text-left"
+                    className="flex items-center gap-4 group w-full text-left mt-4"
                   >
-                    <span className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center bg-white/[0.02] group-hover:bg-red-500/10 group-hover:border-red-500/20 transition-all">
-                      <LogOut size={16} className="text-muted-foreground group-hover:text-red-400 transition-colors" />
+                    <span className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center bg-white/5 group-hover:bg-red-500/10 group-hover:border-red-500/40 transition-all duration-300 shadow-[0_0_20px_rgba(255,0,0,0.05)] group-hover:shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                      <LogOut size={18} className="text-muted-foreground group-hover:text-red-400 transition-colors" />
                     </span>
-                    <span className="font-display text-sm tracking-[0.3em] text-muted-foreground group-hover:text-foreground transition-colors uppercase">
-                      Sair do Void
-                    </span>
+                    <div className="flex flex-col">
+                       <span className="font-display text-xs tracking-[0.3em] text-muted-foreground group-hover:text-white transition-colors uppercase">
+                        Sair do Void
+                      </span>
+                      <span className="text-[8px] text-red-500/50 uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity">Finalizar Sessão</span>
+                    </div>
                   </button>
                 </div>
               ) : (
