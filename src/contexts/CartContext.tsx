@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { Product } from "@/components/ProductGrid";
 import { toast } from "sonner";
+import { useAuth } from "./AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CartItem {
   id: string; // Unique ID (product.id + size + color)
@@ -13,6 +15,8 @@ export interface CartItem {
 interface CartContextType {
   items: CartItem[];
   isCartOpen: boolean;
+  isSyncing: boolean;
+  isInitialized: boolean;
   toggleCart: () => void;
   addToCart: (product: Product, size: string, color: string) => void;
   removeFromCart: (id: string) => void;
@@ -21,82 +25,226 @@ interface CartContextType {
   itemCount: number;
 }
 
+const STORAGE_KEY = "@void_drip:cart";
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    // Load from localStorage if available
-    try {
-      const saved = localStorage.getItem("void_cart");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  
+  const { user, isLoading: authLoading } = useAuth();
+  const [items, setItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  const hasMergedRef = useRef(false);
+  const syncInProgress = useRef(false);
 
+  // Initial Sync & Load
   useEffect(() => {
-    localStorage.setItem("void_cart", JSON.stringify(items));
-  }, [items]);
+    if (authLoading) return;
+
+    const handleSync = async () => {
+      if (syncInProgress.current) return;
+      syncInProgress.current = true;
+      setIsSyncing(true);
+
+      try {
+        if (user) {
+          // 1. Check Merge
+          const savedLocal = localStorage.getItem(STORAGE_KEY);
+          if (savedLocal && !hasMergedRef.current) {
+            try {
+              const localItems: CartItem[] = JSON.parse(savedLocal);
+              if (localItems.length > 0) {
+                for (const item of localItems) {
+                  // Push to DB
+                  const { data: existing } = await supabase
+                    .from("carts")
+                    .select("quantity")
+                    .match({ user_id: user.id, product_id: item.product.id, size: item.size, color: item.color })
+                    .maybeSingle();
+
+                  const newQty = (existing?.quantity || 0) + item.quantity;
+                  
+                  await supabase.from("carts").upsert({
+                    user_id: user.id,
+                    product_id: item.product.id,
+                    size: item.size,
+                    color: item.color,
+                    quantity: Math.min(newQty, item.product.stock_quantity)
+                  });
+                }
+              }
+              hasMergedRef.current = true;
+              localStorage.removeItem(STORAGE_KEY);
+              toast.success("Sessão sincronizada!");
+            } catch (e) {
+              console.error("Merge error", e);
+            }
+          }
+
+          // 2. Load Truth from DB
+          const { data: dbData, error } = await supabase
+            .from("carts")
+            .select("*, product:products(*)")
+            .eq("user_id", user.id);
+
+          if (error) throw error;
+          setItems(dbData?.map(mapDbToCartItem) || []);
+        } else {
+          // Anonymous
+          hasMergedRef.current = false;
+          const savedLocal = localStorage.getItem(STORAGE_KEY);
+          setItems(savedLocal ? JSON.parse(savedLocal) : []);
+        }
+      } catch (err) {
+        console.error("Cart init error:", err);
+      } finally {
+        setIsSyncing(false);
+        setIsInitialized(true);
+        syncInProgress.current = false;
+      }
+    };
+
+    handleSync();
+  }, [user, authLoading]);
+
+  // Sync Local Storage (only for Anonymous)
+  useEffect(() => {
+    if (!user && isInitialized) {
+      if (items.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+  }, [items, user, isInitialized]);
+
+  const mapDbToCartItem = (dbItem: any): CartItem => ({
+    id: `${dbItem.product_id}-${dbItem.size}-${dbItem.color}`,
+    product: dbItem.product,
+    quantity: dbItem.quantity,
+    size: dbItem.size || "Padrão",
+    color: dbItem.color || "Padrão"
+  });
 
   const toggleCart = () => setIsCartOpen(prev => !prev);
 
-  const addToCart = (product: Product, size: string, color: string) => {
+  // --- ACTIONS ---
+
+  const addToCart = async (product: Product, size: string, color: string) => {
+    const newItemId = `${product.id}-${size}-${color}`;
+    
+    // 1. Optimistic Update
     setItems((prev) => {
-      const existingItemIndex = prev.findIndex(
-        (item) => item.product.id === product.id && item.size === size && item.color === color
-      );
-
-      if (existingItemIndex >= 0) {
-        // Item already in cart, increment quantity
-        const newItems = [...prev];
-        if (newItems[existingItemIndex].quantity < product.stock_quantity) {
-          newItems[existingItemIndex].quantity += 1;
-          toast.success("Quantidade atualizada no carrinho");
-        } else {
-          toast.error("Limite de estoque atingido");
-        }
-        return newItems;
+      const existing = prev.find(i => i.id === newItemId);
+      if (existing) {
+        return prev.map(i => i.id === newItemId ? { ...i, quantity: Math.min(i.quantity + 1, product.stock_quantity) } : i);
       }
-
-      // Add new item
-      toast.success(`${product.name} adicionado ao carrinho`);
-      return [...prev, { id: `${product.id}-${size}-${color}`, product, quantity: 1, size, color }];
+      return [...prev, { id: newItemId, product, quantity: 1, size, color }];
     });
+
+    // 2. Background Sync
+    if (user) {
+      setIsSyncing(true);
+      const { data: existing } = await supabase
+        .from("carts")
+        .select("quantity")
+        .match({ user_id: user.id, product_id: product.id, size, color })
+        .maybeSingle();
+
+      const newQty = (existing?.quantity || 0) + 1;
+      const { error } = await supabase.from("carts").upsert({
+        user_id: user.id,
+        product_id: product.id,
+        size,
+        color,
+        quantity: Math.min(newQty, product.stock_quantity)
+      });
+      if (error) {
+        console.error("Add error", error);
+        toast.error("Erro ao adicionar no banco");
+      }
+      setIsSyncing(false);
+    }
+    toast.success(`${product.name} no carrinho!`);
   };
 
-  const removeFromCart = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  const removeFromCart = async (itemId: string) => {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+
+    // 1. Optimistic
+    setItems(prev => prev.filter(i => i.id !== itemId));
+
+    // 2. Sync
+    if (user) {
+      setIsSyncing(true);
+      // We must match EXACTLY what's in the DB.
+      // If we used fallback "Padrão" in state, but DB has null, we must match null.
+      const matchCriteria: any = { 
+        user_id: user.id, 
+        product_id: item.product.id
+      };
+      
+      // If the state says "Padrão", but it came from a null in DB, we should be careful.
+      // Better: when we fetch, we keep the original values if needed.
+      // For now, let's try matching both ways if first fails, or just using null as fallback for match.
+      matchCriteria.size = item.size === "Padrão" ? null : item.size;
+      matchCriteria.color = item.color === "Padrão" ? null : item.color;
+
+      const { error } = await supabase
+        .from("carts")
+        .delete()
+        .match(matchCriteria);
+
+      if (error) {
+        console.error("Delete error", error);
+        toast.error("Erro ao remover do banco");
+      }
+      setIsSyncing(false);
+    }
     toast.success("Item removido");
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(id);
+      removeFromCart(itemId);
       return;
     }
     
-    setItems((prev) => 
-      prev.map((item) => {
-        if (item.id === id) {
-          // Check stock
-          if (quantity > item.product.stock_quantity) {
-            toast.error("Limite de estoque atingido");
-            return item;
-          }
-          return { ...item, quantity };
-        }
-        return item;
-      })
-    );
+    const item = items.find(i => i.id === itemId);
+    if (!item || quantity > item.product.stock_quantity) return;
+
+    // 1. Optimistic
+    setItems(prev => prev.map(i => i.id === itemId ? { ...i, quantity } : i));
+
+    // 2. Sync
+    if (user) {
+      setIsSyncing(true);
+      const matchCriteria: any = { 
+        user_id: user.id, 
+        product_id: item.product.id
+      };
+      matchCriteria.size = item.size === "Padrão" ? null : item.size;
+      matchCriteria.color = item.color === "Padrão" ? null : item.color;
+
+      const { error } = await supabase
+        .from("carts")
+        .update({ quantity })
+        .match(matchCriteria);
+
+      if (error) {
+        console.error("Update error", error);
+      }
+      setIsSyncing(false);
+    }
   };
 
   const cartTotal = items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, isCartOpen, toggleCart, addToCart, removeFromCart, updateQuantity, cartTotal, itemCount }}>
+    <CartContext.Provider value={{ items, isCartOpen, isSyncing, isInitialized, toggleCart, addToCart, removeFromCart, updateQuantity, cartTotal, itemCount }}>
       {children}
     </CartContext.Provider>
   );
@@ -104,8 +252,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
+  if (context === undefined) throw new Error("useCart must be used within a CartProvider");
   return context;
 };

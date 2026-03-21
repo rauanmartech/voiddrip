@@ -8,6 +8,7 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminArea from "./pages/AdminArea.tsx";
 import { CartProvider } from "./contexts/CartContext.tsx";
+import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { CartDrawer } from "./components/CartDrawer.tsx";
 
 // Route-level code splitting — these bundles only load when the user navigates there
@@ -15,6 +16,7 @@ const About = lazy(() => import("./pages/About.tsx"));
 const Accessories = lazy(() => import("./pages/Accessories.tsx"));
 const Collection = lazy(() => import("./pages/Collection.tsx"));
 const ProductDetails = lazy(() => import("./pages/ProductDetails.tsx"));
+const Checkout = lazy(() => import("./pages/Checkout.tsx"));
 
 // Minimal page loader shown during lazy chunk fetch
 const PageLoader = () => (
@@ -37,19 +39,21 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <CartProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <CartDrawer />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
+    <AuthProvider>
+      <CartProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <CartDrawer />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/sobre" element={<About />} />
               <Route path="/acessorios" element={<Accessories />} />
               <Route path="/colecao" element={<Collection />} />
               <Route path="/produto/:id" element={<ProductDetails />} />
+              <Route path="/checkout" element={<Checkout />} />
               <Route path="/admin" element={<AdminArea />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
@@ -58,6 +62,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </CartProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

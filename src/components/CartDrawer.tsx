@@ -1,6 +1,6 @@
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
-import { X, Trash2, Plus, Minus, ArrowRight, ShoppingBag, Truck, Clock, Sparkles } from "lucide-react";
+import { X, Trash2, Plus, Minus, ArrowRight, ShoppingBag, Truck, Clock, Sparkles, Loader2, Check } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useProducts } from "@/hooks/useProducts";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,7 @@ const formatPrice = (price: number) => {
 };
 
 export const CartDrawer = () => {
-  const { isCartOpen, toggleCart, items, removeFromCart, updateQuantity, cartTotal } = useCart();
+  const { isCartOpen, toggleCart, items, removeFromCart, updateQuantity, cartTotal, isSyncing } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { data: allProducts = [] } = useProducts();
@@ -101,7 +101,7 @@ export const CartDrawer = () => {
       setTimeout(() => {
         setIsCheckingOut(false);
         toggleCart();
-        navigate('/checkout'); // Rota futura ou atual de checkout
+        navigate('/checkout');
       }, 500);
 
     } catch (error) {
@@ -113,7 +113,7 @@ export const CartDrawer = () => {
   const onAuthSuccess = () => {
     setIsAuthModalOpen(false);
     toggleCart();
-    navigate('/checkout'); // Segue o fluxo sem perder itens
+    navigate('/checkout');
   };
 
   const handleCrossSellRecomendation = (id: string) => {
@@ -155,6 +155,21 @@ export const CartDrawer = () => {
                 <span className="flex items-center justify-center w-5 h-5 rounded-full bg-white text-black font-display text-[10px] ml-2">
                   {items.length}
                 </span>
+                
+                {/* Syncing Indicator */}
+                <AnimatePresence>
+                  {isSyncing && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-1.5 ml-2"
+                    >
+                      <Loader2 size={10} className="text-primary animate-spin" />
+                      <span className="font-display text-[7px] tracking-[0.2em] text-primary uppercase">Sincronizando</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               <button
                 onClick={toggleCart}

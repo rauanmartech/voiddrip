@@ -107,7 +107,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-4xl bg-background border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] pointer-events-auto flex flex-col md:flex-row overflow-hidden"
+              className="w-full max-w-4xl bg-background border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] pointer-events-auto flex flex-col md:flex-row overflow-hidden max-h-[95vh] md:max-h-none overflow-y-auto md:overflow-visible"
             >
               
               {/* Left Column: Form / Social */}
@@ -199,7 +199,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-white/5 border border-white/10 text-white py-4 mt-2 hover:bg-white/10 transition-colors font-display text-[11px] tracking-[0.3em] uppercase flex items-center justify-center gap-2"
+                    className="w-full btn-neon-green py-5 mt-2 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 font-bold"
                   >
                     {isLoading ? <Loader2 size={16} className="animate-spin" /> : isLogin ? "ENTRAR NO DRIP" : "CRIAR CONTA"}
                   </button>
@@ -239,9 +239,9 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
 
                   <button
                     onClick={handleGuestCheckout}
-                    className="w-full relative group overflow-hidden border border-white bg-transparent text-white py-5 flex items-center justify-center gap-3 transition-colors hover:bg-white hover:text-black"
+                    className="w-full relative group overflow-hidden border border-white bg-transparent text-white py-5 flex items-center justify-center gap-2 md:gap-3 transition-colors hover:bg-white hover:text-black"
                   >
-                    <span className="relative font-display text-[11px] tracking-[0.3em] font-bold uppercase z-10">
+                    <span className="relative font-display text-[9px] md:text-[11px] tracking-[0.2em] md:tracking-[0.3em] font-bold uppercase z-10">
                       CONTINUAR COMO CONVIDADO
                     </span>
                     <ArrowRight size={14} className="relative z-10 group-hover:translate-x-2 transition-transform" />

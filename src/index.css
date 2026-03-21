@@ -157,6 +157,39 @@
     background-size: 60px 60px;
   }
 
+  .btn-neon-green {
+    @apply px-8 py-3 text-[10px] tracking-[0.3em] uppercase border transition-all duration-500 relative overflow-hidden;
+    font-family: var(--font-display);
+    border-color: #00FF87;
+    color: #00FF87;
+    background: rgba(0, 255, 135, 0.03);
+    box-shadow: inset 0 0 10px rgba(0, 255, 135, 0.05);
+  }
+
+  .btn-neon-green:hover {
+    background: #00FF87;
+    color: #000;
+    box-shadow: 0 0 35px rgba(0, 255, 135, 0.4), 0 0 60px rgba(0, 255, 135, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .btn-neon-green::after {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-500;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transform: skewX(-20deg);
+  }
+
+  .btn-neon-green:hover::after {
+    animation: scan-highlight 1.5s infinite;
+    opacity: 1;
+  }
+
+  @keyframes scan-highlight {
+    0% { left: -100%; }
+    100% { left: 150%; }
+  }
+
   .black-hole {
     @apply relative flex items-center justify-center;
     width: 16px;

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
-import { X, Home, LayoutGrid, Package, TrendingUp, Info } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { X, Home, LayoutGrid, Package, TrendingUp, Info, LogOut, User, Settings } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -16,6 +17,14 @@ const menuItems = [
 ];
 
 const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    onClose();
+    navigate('/');
+  };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -31,11 +40,11 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
 
           {/* Menu Panel */}
           <motion.div
-            initial={{ x: "-100%" }}
+            initial={{ x: "100%" }}
             animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
+            exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 left-0 h-full w-[80%] max-w-[400px] bg-background border-r border-white/5 z-[70] md:hidden overflow-hidden flex flex-col"
+            className="fixed top-0 right-0 h-full w-[80%] max-w-[400px] bg-background border-l border-white/5 z-[70] md:hidden overflow-hidden flex flex-col"
           >
             {/* Cosmic Background Elements */}
             <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -95,18 +104,52 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                     <span className="font-display text-xl tracking-[0.3em] text-muted-foreground group-hover:text-foreground transition-all duration-300 group-hover:translate-x-2">
                       {item.label}
                     </span>
-                    <div className="h-px flex-grow bg-white/5 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ml-4" />
+                    <div className="h-px flex-grow bg-white/5 scale-x-0 group-hover:scale-x-100 transition-transform origin-right duration-500 ml-4" />
                   </Link>
                 </motion.div>
               ))}
             </nav>
 
             {/* Footer Footer */}
-            <div className="relative z-10 p-8 border-t border-white/5">
-              <p className="font-display text-[8px] tracking-[0.5em] text-muted-foreground uppercase opacity-30 leading-loose">
-                Void Drip Society <br />
-                Codified Reality 2026
-              </p>
+            <div className="relative z-10 p-8 border-t border-white/5 bg-black/20">
+              {user ? (
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 overflow-hidden">
+                      {user.user_metadata?.avatar_url ? (
+                        <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={18} className="text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase truncate max-w-[150px]">
+                        {user.email?.split('@')[0]}
+                      </span>
+                      <Link to="/perfil" onClick={onClose} className="text-[10px] text-primary uppercase font-bold tracking-widest mt-0.5">
+                        Ver Perfil
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-4 group w-full text-left"
+                  >
+                    <span className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center bg-white/[0.02] group-hover:bg-red-500/10 group-hover:border-red-500/20 transition-all">
+                      <LogOut size={16} className="text-muted-foreground group-hover:text-red-400 transition-colors" />
+                    </span>
+                    <span className="font-display text-sm tracking-[0.3em] text-muted-foreground group-hover:text-foreground transition-colors uppercase">
+                      Sair do Void
+                    </span>
+                  </button>
+                </div>
+              ) : (
+                <p className="font-display text-[8px] tracking-[0.5em] text-muted-foreground uppercase opacity-30 leading-loose">
+                  Void Drip Society <br />
+                  Codified Reality 2026
+                </p>
+              )}
             </div>
           </motion.div>
         </>
