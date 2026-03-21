@@ -25,8 +25,11 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // You might configure dynamic redirect based on location in real scenarios
-          redirectTo: `${window.location.origin}/checkout`
+          redirectTo: `${window.location.origin}/checkout`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
       if (error) throw error;
