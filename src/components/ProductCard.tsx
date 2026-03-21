@@ -76,14 +76,14 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
         {isTrending && product.stock_quantity > 0 && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 md:left-3 md:translate-x-0 z-20">
             {/* Outer glow ring */}
-            <div className="absolute inset-0 rounded-full bg-orange-500/20 blur-md scale-150 animate-pulse" />
+            <div className="absolute inset-0 rounded-full bg-orange-500/20 blur-md scale-150 animate-none md:animate-pulse" />
 
             <div
-              className="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full animate-fire-glow border border-orange-400/60 backdrop-blur-md overflow-hidden whitespace-nowrap"
+              className="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full animate-none md:animate-fire-glow border border-orange-400/60 backdrop-blur-md overflow-hidden whitespace-nowrap"
               style={{ background: 'linear-gradient(to right, rgba(234,88,12,0.85), rgba(249,115,22,0.75), rgba(251,191,36,0.65))' }}
             >
               <div
-                className="absolute inset-0 pointer-events-none"
+                className="absolute inset-0 pointer-events-none hidden md:block"
                 style={{
                   background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%)',
                   backgroundSize: '200% 100%',
@@ -93,9 +93,8 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
 
               <Flame
                 size={11}
-                className="relative text-white drop-shadow-[0_0_5px_rgba(251,146,60,1)]"
+                className="relative text-white drop-shadow-[0_0_5px_rgba(251,146,60,1)] animate-none md:animate-[pulse_0.9s_ease-in-out_infinite]"
                 fill="rgba(253,186,116,0.7)"
-                style={{ animation: 'pulse 0.9s ease-in-out infinite' }}
               />
               <span className="relative font-display text-[7px] tracking-[0.25em] text-white uppercase font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                 EM ALTA
@@ -105,7 +104,7 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
         )}
 
         {/* Wishlist Button */}
-        <div className="absolute top-3 right-3 z-30">
+        <div className="absolute top-auto bottom-3 right-3 md:bottom-auto md:top-3 z-30">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -134,14 +133,14 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
                 style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.8), rgba(40,40,40,0.8))' }}
               >
                 <div
-                  className="absolute inset-0 pointer-events-none"
+                  className="absolute inset-0 pointer-events-none hidden md:block"
                   style={{
                     background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
                     backgroundSize: '200% 100%',
                     animation: 'badge-shimmer 3s linear infinite',
                   }}
                 />
-                <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-none md:animate-pulse" />
                 <span className="relative font-display text-[7px] tracking-[1em] text-foreground select-none uppercase font-bold pl-[1em]">
                   OUT
                 </span>
@@ -150,10 +149,17 @@ const ProductCard = ({ product, onClick, isTrending, eager = false }: ProductCar
 
             <div className="absolute inset-0 bg-black/80 z-10 flex flex-col items-center justify-center gap-2 overflow-hidden px-4">
               <div className="relative mt-1 select-none">
-                {/* Subtle Glitch: Slight opacity flickers and 1px shifts */}
-                <span className="font-display text-4xl opacity-40 text-white animate-pulse">:(</span>
-                <span className="absolute inset-0 font-display text-4xl opacity-10 text-primary pointer-events-none translate-x-[1px] translate-y-[-1px] animate-[pulse_0.1s_infinite]">:(</span>
-                <span className="absolute inset-0 font-display text-4xl opacity-5 text-white pointer-events-none translate-x-[-1px] translate-y-[1px] animate-[pulse_0.2s_infinite]">:(</span>
+                {/* Desktop: Animated Glitch for Premium Feel */}
+                <div className="hidden md:block relative">
+                  <span className="font-display text-4xl opacity-40 text-white animate-pulse">:(</span>
+                  <span className="absolute inset-0 font-display text-4xl opacity-10 text-primary pointer-events-none translate-x-[1px] translate-y-[-1px] animate-[pulse_0.1s_infinite]">:(</span>
+                  <span className="absolute inset-0 font-display text-4xl opacity-5 text-white pointer-events-none translate-x-[-1px] translate-y-[1px] animate-[pulse_0.2s_infinite]">:(</span>
+                </div>
+                
+                {/* Mobile: Static Face for Fluid Performance */}
+                <div className="md:hidden">
+                  <span className="font-display text-4xl opacity-40 text-white">:(</span>
+                </div>
               </div>
             </div>
           </>
