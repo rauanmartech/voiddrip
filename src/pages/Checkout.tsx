@@ -4,24 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  ChevronRight, 
-  MapPin, 
-  CreditCard, 
-  ShieldCheck, 
-  Truck, 
-  Clock, 
-  ArrowLeft, 
-  CheckCircle2, 
-  Check, 
-  Loader2,
-  Lock,
-  Smartphone,
-  User as UserIcon,
-  Mail,
-  ShoppingBag,
-  Star
-} from "lucide-react";
+import { ChevronRight, Lock, MapPin, Truck, Check, Package, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, User as UserIcon, ShieldCheck, Mail, Smartphone, Star, CreditCard, Clock } from "lucide-react";
+import { Wallet } from "@mercadopago/sdk-react";
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +35,7 @@ export default function Checkout() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [mpPreferenceId, setMpPreferenceId] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
 
   // Shake animation configuration
@@ -95,6 +80,20 @@ export default function Checkout() {
   // --- Logic ---
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const statusResult = params.get("status");
+    const orderIdParam = params.get("orderId");
+    
+    if (statusResult === "success" && orderIdParam) {
+      setOrderId(orderIdParam);
+      setStep("success");
+      // Clear cart
+      items.forEach(item => removeFromCart(item.id));
+      toast.success("Pagamento confirmado!");
+    } else if (statusResult === "failure") {
+      toast.error("O pagamento não foi concluído. Tente novamente.");
+    }
+    
     if (isInitialized && items.length === 0 && step !== "success") {
       navigate("/");
     }
@@ -199,11 +198,11 @@ export default function Checkout() {
       const { error: addrError } = await supabase.from("addresses").insert({
         order_id: order.id,
         user_id: user?.id || null,
-        full_name: buyerData.fullName, // New requirement
+        full_name: buyerData.fullName,
         street: address.street,
         number: address.number,
         complement: address.complement,
-        neighborhood: "Centro", // Default or extract if avail
+        neighborhood: "Centro", 
         zip_code: address.zipCode,
         city: address.city,
         state: address.state,
@@ -211,12 +210,32 @@ export default function Checkout() {
       });
       if (addrError) throw addrError;
 
-      // 4. Success Tasks
-      setOrderId(order.id);
-      setStep("success");
-      
-      // Clear Cart 
-      items.forEach(item => removeFromCart(item.id));
+      // 4. Create Mercado Pago Preference
+      const { data: mpData, error: mpError } = await supabase.functions.invoke('mercadopago-checkout', {
+        body: {
+          orderId: order.id,
+          items: items.map(item => ({
+            ...item,
+            product: {
+              ...item.product,
+              image_url: item.product.image_url // pass standard field
+            }
+          })),
+          buyerData
+        }
+      });
+
+      if (mpError) throw mpError;
+
+      if (mpData?.preferenceId) {
+         setMpPreferenceId(mpData.preferenceId);
+         toast.success("Resumo do pedido pronto!");
+      } else if (mpData?.checkoutUrl) {
+         // Fallback if SDK fails or preferenceId not returned
+         window.location.href = mpData.checkoutUrl;
+      } else {
+         throw new Error("Não foi possível gerar o link de pagamento.");
+      }
 
     } catch (e: any) {
       toast.error(`Erro: ${e.message}`);
@@ -575,21 +594,31 @@ export default function Checkout() {
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center gap-6">
-                  <button 
-                    onClick={() => setStep("shipping")}
-                    className="order-2 md:order-1 text-[10px] tracking-[0.2em] text-muted-foreground hover:text-white transition-colors font-display flex items-center gap-2 uppercase font-bold"
-                  >
-                    <ArrowLeft size={12} /> Voltar
-                  </button>
-                  <button 
-                    onClick={handleFinalizeOrder}
-                    disabled={isLoading}
-                    className="order-1 md:order-2 w-full md:flex-1 btn-neon-green py-6 flex items-center justify-center gap-3 transition-all font-bold text-[12px] tracking-[0.4em]"
-                  >
-                    {isLoading ? <Loader2 className="animate-spin" /> : `FECHAR PEDIDO DE ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}`}
-                  </button>
-                </div>
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <button 
+                      onClick={() => setStep("shipping")}
+                      disabled={isLoading || !!mpPreferenceId}
+                      className="order-2 md:order-1 text-[10px] tracking-[0.2em] text-muted-foreground hover:text-white transition-colors font-display flex items-center gap-2 uppercase font-bold disabled:opacity-30"
+                    >
+                      <ArrowLeft size={12} /> Voltar
+                    </button>
+                    
+                    {mpPreferenceId ? (
+                      <div className="order-1 md:order-2 w-full md:flex-1 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <Wallet 
+                          initialization={{ preferenceId: mpPreferenceId }} 
+                        />
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={handleFinalizeOrder}
+                        disabled={isLoading}
+                        className="order-1 md:order-2 w-full md:flex-1 btn-neon-green py-6 flex items-center justify-center gap-3 transition-all font-bold text-[12px] tracking-[0.4em]"
+                      >
+                        {isLoading ? <Loader2 className="animate-spin" /> : `FECHAR PEDIDO DE ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}`}
+                      </button>
+                    )}
+                  </div>
               </motion.div>
             )}
 

@@ -12,6 +12,10 @@ import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { WishlistProvider } from "./contexts/WishlistContext.tsx";
 import { CartDrawer } from "./components/CartDrawer.tsx";
 import AdminSidebar from "./components/AdminSidebar.tsx";
+import { initMercadoPago } from "@mercadopago/sdk-react";
+
+// Initialize Mercado Pago with public key
+initMercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY || "APP_USR-7e4e67be-9d05-4062-89cd-34727aaebb96");
 
 // Route-level code splitting
 const About = lazy(() => import("./pages/About.tsx"));
@@ -21,6 +25,9 @@ const Favorites = lazy(() => import("./pages/Favorites.tsx"));
 const ProductDetails = lazy(() => import("./pages/ProductDetails.tsx"));
 const Checkout = lazy(() => import("./pages/Checkout.tsx"));
 const Profile = lazy(() => import("./pages/Profile.tsx"));
+const Success = lazy(() => import("./pages/Success.tsx"));
+const Failure = lazy(() => import("./pages/Failure.tsx"));
+const Pending = lazy(() => import("./pages/Pending.tsx"));
 
 // Minimal page loader
 const PageLoader = () => (
@@ -62,6 +69,9 @@ const App = () => (
                   <Route path="/produto/:id" element={<ProductDetails />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/perfil" element={<Profile />} />
+                  <Route path="/success" element={<Success />} />
+                  <Route path="/failure" element={<Failure />} />
+                  <Route path="/pending" element={<Pending />} />
                   <Route path="/admin" element={<AdminArea />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
