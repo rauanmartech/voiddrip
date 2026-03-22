@@ -6,6 +6,8 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight, Lock, MapPin, Truck, Check, Package, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, User as UserIcon, ShieldCheck, Mail, Smartphone, Star, CreditCard, Clock } from "lucide-react";
 import { Wallet } from "@mercadopago/sdk-react";
+import voidLogo from "../assets/voiddrip.jpeg";
+import mpLogo from "../assets/mercado-pago.png";
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -559,38 +561,6 @@ export default function Checkout() {
             )}
 
             {step === "payment" && (
-              <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className={STYLES.stepContainer}>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
-                    <CreditCard size={20} />
-                  </div>
-                  <h2 className="font-display text-xl uppercase tracking-widest">Forma de Pagamento</h2>
-                </div>
-
-                <div className="space-y-4 mb-8">
-                   {PAYMENT_METHODS.map(method => (
-                     <button
-                        key={method.id}
-                        onClick={() => setPaymentMethod(method.id)}
-                        className={`w-full p-6 flex items-center justify-between border transition-all ${
-                          paymentMethod === method.id 
-                          ? "bg-white/10 border-primary" 
-                          : "bg-white/[0.02] border-white/5 hover:border-white/20"
-                        }`}
-                     >
-                        <div className="flex items-center gap-4">
-                           <span className="text-2xl">{method.icon}</span>
-                           <h4 className="font-display text-xs tracking-widest uppercase text-left">{method.label}</h4>
-                        </div>
-                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                          paymentMethod === method.id ? "bg-primary border-primary" : "border-white/20"
-                        }`}>
-                           {paymentMethod === method.id && <Check size={12} className="text-black" />}
-                        </div>
-                     </button>
-                   ))}
-                </div>
-
               <motion.div 
                 key="payment" 
                 initial={{ opacity: 0, y: 20 }} 
@@ -601,8 +571,8 @@ export default function Checkout() {
                 {/* Header Bridge */}
                 <div className="flex flex-col items-center text-center space-y-4 mb-12">
                   <div className="flex items-center gap-8 relative">
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-3">
-                      <img src="/logo.png" alt="Voiddrip" className="w-full h-auto object-contain opacity-80" />
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-1 overflow-hidden">
+                      <img src={voidLogo} alt="Voiddrip" className="w-full h-full object-cover opacity-90" />
                     </div>
                     
                     {/* Secure Energy Line Animation */}
@@ -615,8 +585,8 @@ export default function Checkout() {
                       />
                     </div>
 
-                    <div className="w-16 h-16 rounded-2xl bg-[#009EE3]/10 border border-[#009EE3]/20 flex items-center justify-center p-3">
-                      <ShieldCheck className="w-8 h-8 text-[#009EE3]" />
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-1 overflow-hidden">
+                      <img src={mpLogo} alt="Mercado Pago" className="w-full h-full object-cover" />
                     </div>
                   </div>
                   <h2 className="font-display text-xl tracking-[0.3em] uppercase">Revisão e Pagamento</h2>
@@ -707,8 +677,8 @@ export default function Checkout() {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-center gap-2 pt-4 opacity-50 grayscale hover:grayscale-0 transition-all">
-                        <img src="https://logodownload.org/wp-content/uploads/2019/06/mercado-pago-logo.png" alt="MP Logo" className="h-4 w-auto brightness-200" />
+                      <div className="flex items-center justify-center gap-2 pt-4 opacity-70 grayscale hover:grayscale-0 transition-all">
+                        <img src={mpLogo} alt="Mercado Pago" className="h-6 w-auto object-contain" />
                       </div>
                     </Card>
                   </div>
