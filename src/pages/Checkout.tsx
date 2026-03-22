@@ -66,9 +66,11 @@ export default function Checkout() {
     street: "",
     number: "",
     complement: "",
+    neighborhood: "",
     city: "",
     state: "",
-    phone: ""
+    phone: "",
+    fullName: "",
   });
   const [paymentMethod, setPaymentMethod] = useState("pix");
 
@@ -134,11 +136,13 @@ export default function Checkout() {
     setAddress({
       zipCode: saved.zip_code,
       street: saved.street,
-      number: saved.number,
+      number: saved.number || "",
       complement: saved.complement || "",
+      neighborhood: saved.neighborhood || "",
       city: saved.city,
       state: saved.state,
-      phone: address.phone // Keep current phone if already typed
+      phone: address.phone || saved.phone || "",
+      fullName: saved.full_name || ""
     });
     setBuyerData(prev => ({ ...prev, fullName: saved.full_name }));
   };
@@ -154,6 +158,7 @@ export default function Checkout() {
           setAddress(prev => ({
             ...prev,
             street: data.logradouro,
+            neighborhood: data.bairro || "",
             city: data.localidade,
             state: data.uf
           }));
@@ -498,6 +503,11 @@ export default function Checkout() {
                     <Input placeholder="Apto, bloco, etc (Opcional)" value={address.complement} onChange={e => setAddress(prev => ({ ...prev, complement: e.target.value }))} className={STYLES.input} />
                   </div>
 
+                  <div className="md:col-span-2">
+                    <label className={STYLES.label}>Bairro</label>
+                    <Input placeholder="Seu bairro" value={address.neighborhood} onChange={e => setAddress(prev => ({ ...prev, neighborhood: e.target.value }))} className={STYLES.input} />
+                  </div>
+
                   <div className="md:col-span-3">
                     <label className={STYLES.label}>Cidade</label>
                     <Input placeholder="Sua cidade" value={address.city} onChange={e => setAddress(prev => ({ ...prev, city: e.target.value }))} className={STYLES.input} />
@@ -593,85 +603,71 @@ export default function Checkout() {
                   <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Ambiente 100% Criptografado</p>
                 </div>
 
-                {/* Bento Grid Layout */}
+                {/* Bento Grid Layout: [Items + Payment] [Shipping] */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                  {/* Order Summary Box */}
-                  <Card className="md:col-span-8 bg-white/[0.02] border-white/10 overflow-hidden flex flex-col">
-                    <div className="p-6 border-b border-white/5 bg-white/[0.01]">
+                  {/* Left Column: Items + Payment Control */}
+                  <Card className="md:col-span-8 bg-white/[0.02] border-white/10 overflow-hidden flex flex-col h-fit">
+                    <div className="p-6 border-b border-white/5 bg-white/[0.01] flex justify-between items-center">
                       <h3 className="text-[10px] tracking-[0.2em] uppercase font-bold text-muted-foreground flex items-center gap-2">
-                        <ShoppingBag size={12} /> Itens do Pedido
+                        <ShoppingBag size={12} /> Resumo do Pedido
                       </h3>
+                      <div className="text-[10px] font-mono text-primary font-bold">
+                        {items.length} {items.length === 1 ? 'ITEM' : 'ITENS'}
+                      </div>
                     </div>
-                    <div className="p-6 space-y-6 flex-1 max-h-[400px] overflow-y-auto custom-scrollbar">
+                    
+                    {/* Items List */}
+                    <div className="p-6 space-y-6 max-h-[350px] overflow-y-auto custom-scrollbar border-b border-white/5">
                       {items.map((item) => (
                         <div key={item.id} className="flex gap-4 group">
-                          <div className="w-20 h-20 bg-white/5 rounded-lg border border-white/10 overflow-hidden shrink-0">
+                          <div className="w-16 h-16 bg-white/5 rounded-lg border border-white/10 overflow-hidden shrink-0">
                             <img src={item.product.image_url?.split(',')[0]} alt={item.product.name} className="w-full h-full object-cover" />
                           </div>
-                          <div className="flex-1 flex flex-col justify-center">
-                            <h4 className="text-sm font-bold tracking-tight mb-1">{item.product.name}</h4>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-loose">
-                              Tam: {item.size || 'Padrão'} | Qtd: {item.quantity}
-                            </p>
-                            <div className="mt-2 text-xs font-mono text-primary">
+                          <div className="flex-1 flex flex-row items-center justify-between gap-4">
+                            <div>
+                              <h4 className="text-sm font-bold tracking-tight mb-1">{item.product.name}</h4>
+                              <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
+                                {item.size || 'Padrão'} | Qtd: {item.quantity}
+                              </p>
+                            </div>
+                            <div className="text-xs font-mono text-white/50">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.product.price * item.quantity)}
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                  </Card>
 
-                  {/* Sidebar Info */}
-                  <div className="md:col-span-4 space-y-6 flex flex-col">
-                    {/* Shipping Box */}
-                    <Card className="bg-white/[0.02] border-white/10 p-6 space-y-4">
-                      <h3 className="text-[10px] tracking-[0.2em] uppercase font-bold text-muted-foreground flex items-center gap-2">
-                        <MapPin size={12} /> Entrega Prioritária
-                      </h3>
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-white font-bold uppercase tracking-tight line-clamp-1">{address.street}, {address.number}</p>
-                        <p className="text-[10px] text-muted-foreground uppercase opacity-60 tracking-widest">{address.city}, {address.state}</p>
-                      </div>
-                      <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                        <Clock className="w-3 h-3 text-primary animate-pulse" />
-                        <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Receba até {deliveryDate.split(',')[1]}</span>
-                      </div>
-                    </Card>
-
-                    {/* Payment Intent Box */}
-                    <Card className="bg-white/[0.02] border-primary/20 border p-6 space-y-4 flex-1 flex flex-col justify-between relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full pointer-events-none" />
+                    {/* Integrated Payment Section */}
+                    <div className="p-8 bg-primary/5 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 blur-[80px] rounded-full pointer-events-none" />
                       
-                      <div className="space-y-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10 text-center md:text-left">
                         <div className="space-y-1">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Total Final</p>
-                          <p className="text-3xl font-display text-white tracking-tighter">
+                          <p className="text-4xl font-display text-white tracking-tighter">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}
                           </p>
                         </div>
                         
-                        <div className="pt-2 min-h-[90px] flex items-center justify-center">
+                        <div className="w-full md:w-72 min-h-[70px] flex items-center justify-center">
                            {isLoading ? (
-                             <div className="w-full bg-white/5 border border-white/10 rounded-xl p-8 flex flex-col items-center justify-center space-y-4 animate-pulse">
+                             <div className="w-full bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center space-y-4 animate-pulse">
                                <Loader2 className="animate-spin text-primary" size={24} />
-                               <div className="h-2 w-24 bg-white/10 rounded" />
                              </div>
                            ) : mpPreferenceId ? (
                              <div className="w-full animate-in fade-in zoom-in-95 duration-700">
-                               <div className="[&_.mercadopago-button]:!w-full [&_.mercadopago-button]:!border-none [&_.mercadopago-button]:!rounded-xl shadow-lg shadow-black/20">
+                               <div className="[&_.mercadopago-button]:!w-full [&_.mercadopago-button]:!border-none [&_.mercadopago-button]:!rounded-xl shadow-2xl shadow-primary/20">
                                  <Wallet 
                                    initialization={{ preferenceId: mpPreferenceId }} 
                                  />
                                </div>
-                               <p className="text-[9px] text-center text-muted-foreground uppercase tracking-[0.1em] mt-4 leading-relaxed px-2">
-                                 Finalize com Pix ou Cartão em ambiente protegido.
-                               </p>
+                               <p className="text-[9px] text-center text-muted-foreground uppercase tracking-[0.1em] mt-3">Ambiente 100% Protegido</p>
                              </div>
                            ) : (
                              <Button 
                                onClick={handleFinalizeOrder}
-                               className="w-full py-8 text-[12px] tracking-[0.3em] font-bold uppercase btn-neon-green"
+                               className="w-full py-7 text-[11px] tracking-[0.3em] font-bold uppercase btn-neon-green"
                              >
                                Inicializar Checkout
                              </Button>
@@ -679,21 +675,52 @@ export default function Checkout() {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                      <div className="flex items-center justify-between pt-8 mt-8 border-t border-white/5 opacity-80">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full overflow-hidden border border-white/10 bg-white">
+                          <div className="w-7 h-7 rounded-full overflow-hidden border border-white/10 bg-white">
                             <img src={mpLogo} alt="MP" className="w-full h-full object-cover" />
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-[9px] text-white font-bold uppercase tracking-widest">Pagamento Seguro</span>
-                            <span className="text-[8px] text-muted-foreground uppercase opacity-60">Mercado Pago</span>
-                          </div>
+                          <span className="text-[9px] text-white/60 font-medium uppercase tracking-widest">Pagamento via Mercado Pago</span>
                         </div>
-                        
-                        {/* Custom Security Seal */}
                         <div className="flex items-center gap-1.5 px-2 py-1 bg-[#009EE3]/10 border border-[#009EE3]/20 rounded-md">
                           <ShieldCheck size={10} className="text-[#009EE3]" />
-                          <span className="text-[8px] text-[#009EE3] font-bold uppercase tracking-tighter">Verified SSL</span>
+                          <span className="text-[8px] text-[#009EE3] font-bold uppercase tracking-tighter">Compra Garantida</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Right Column: Delivery Info Only */}
+                  <div className="md:col-span-4 h-fit">
+                    <Card className="bg-white/[0.02] border-white/10 p-6 space-y-6">
+                      <div className="flex flex-col space-y-4">
+                        <h3 className="text-[10px] tracking-[0.2em] uppercase font-bold text-muted-foreground flex items-center gap-2">
+                          <MapPin size={12} /> Entrega Prioritária
+                        </h3>
+                        
+                        <div className="space-y-4">
+                          <div className="space-y-1">
+                            <p className="text-[12px] text-white font-bold uppercase tracking-tight">{address.fullName || buyerData.fullName}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-relaxed">
+                              {address.street}, {address.number}<br/>
+                              {address.complement && `${address.complement} - `}{address.neighborhood}<br/>
+                              {address.city}, {address.state} - {address.zipCode}
+                            </p>
+                          </div>
+                          
+                          <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
+                            <Clock className="w-4 h-4 text-primary animate-pulse" />
+                            <div>
+                              <p className="text-[8px] text-white/50 uppercase tracking-widest">Previsão de Chegada</p>
+                              <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Receba até {deliveryDate.split(',')[1]}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-white/5">
+                           <p className="text-[9px] text-muted-foreground/60 leading-relaxed uppercase tracking-tighter">
+                             O prazo de envio começa a contar após a confirmação do pagamento. Você receberá o código de rastreio via e-mail.
+                           </p>
                         </div>
                       </div>
                     </Card>
