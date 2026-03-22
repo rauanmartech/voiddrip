@@ -70,12 +70,19 @@ export default function Checkout() {
   });
   const [paymentMethod, setPaymentMethod] = useState("pix");
 
-  // Sync email if user changes
+  // Synchronize email if user changes
   useEffect(() => {
     if (user?.email) {
       setBuyerData(prev => ({ ...prev, email: user.email }));
     }
   }, [user]);
+
+  // BRIDGE LOGIC: Auto-create order and preference when reaching payment step
+  useEffect(() => {
+    if (step === "payment" && !mpPreferenceId && !isLoading && items.length > 0) {
+      handleFinalizeOrder();
+    }
+  }, [step, mpPreferenceId, isLoading, items.length]);
 
   // --- Logic ---
 
@@ -584,41 +591,136 @@ export default function Checkout() {
                    ))}
                 </div>
 
-                <div className="p-8 bg-primary/5 border border-primary/20 rounded-2xl flex items-start gap-4 mb-8">
-                    <ShieldCheck size={24} className="text-primary flex-shrink-0" />
-                    <div className="space-y-1">
-                       <h5 className="font-display text-[11px] tracking-widest uppercase text-primary">Segurança Absoluta</h5>
-                       <p className="text-[10px] text-white/50 leading-relaxed">
-                          Nós utilizamos criptografia SSL para garantir que todos os seus dados permaneçam privados.
-                       </p>
+              <motion.div 
+                key="payment" 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -20 }}
+                className="w-full max-w-4xl mx-auto space-y-8"
+              >
+                {/* Header Bridge */}
+                <div className="flex flex-col items-center text-center space-y-4 mb-12">
+                  <div className="flex items-center gap-8 relative">
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-3">
+                      <img src="/logo.png" alt="Voiddrip" className="w-full h-auto object-contain opacity-80" />
                     </div>
+                    
+                    {/* Secure Energy Line Animation */}
+                    <div className="w-32 h-px bg-white/10 relative overflow-hidden">
+                      <motion.div 
+                        initial={{ left: "-100%" }}
+                        animate={{ left: "100%" }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                        className="absolute top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-primary/50 to-transparent"
+                      />
+                    </div>
+
+                    <div className="w-16 h-16 rounded-2xl bg-[#009EE3]/10 border border-[#009EE3]/20 flex items-center justify-center p-3">
+                      <ShieldCheck className="w-8 h-8 text-[#009EE3]" />
+                    </div>
+                  </div>
+                  <h2 className="font-display text-xl tracking-[0.3em] uppercase">Revisão e Pagamento</h2>
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Ambiente 100% Criptografado</p>
                 </div>
 
-                  <div className="flex flex-col md:flex-row items-center gap-6">
-                    <button 
-                      onClick={() => setStep("shipping")}
-                      disabled={isLoading || !!mpPreferenceId}
-                      className="order-2 md:order-1 text-[10px] tracking-[0.2em] text-muted-foreground hover:text-white transition-colors font-display flex items-center gap-2 uppercase font-bold disabled:opacity-30"
-                    >
-                      <ArrowLeft size={12} /> Voltar
-                    </button>
-                    
-                    {mpPreferenceId ? (
-                      <div className="order-1 md:order-2 w-full md:flex-1 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <Wallet 
-                          initialization={{ preferenceId: mpPreferenceId }} 
-                        />
+                {/* Bento Grid Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                  {/* Order Summary Box */}
+                  <Card className="md:col-span-8 bg-white/[0.02] border-white/10 overflow-hidden flex flex-col">
+                    <div className="p-6 border-b border-white/5 bg-white/[0.01]">
+                      <h3 className="text-[10px] tracking-[0.2em] uppercase font-bold text-muted-foreground flex items-center gap-2">
+                        <ShoppingBag size={12} /> Itens do Pedido
+                      </h3>
+                    </div>
+                    <div className="p-6 space-y-6 flex-1 max-h-[400px] overflow-y-auto custom-scrollbar">
+                      {items.map((item) => (
+                        <div key={item.id} className="flex gap-4 group">
+                          <div className="w-20 h-20 bg-white/5 rounded-lg border border-white/10 overflow-hidden shrink-0">
+                            <img src={item.product.image_url?.split(',')[0]} alt={item.product.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
+                          </div>
+                          <div className="flex-1 flex flex-col justify-center">
+                            <h4 className="text-sm font-bold tracking-tight mb-1">{item.product.name}</h4>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-loose">
+                              Tam: {item.size || 'Padrão'} | Qtd: {item.quantity}
+                            </p>
+                            <div className="mt-2 text-xs font-mono text-primary">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.product.price * item.quantity)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+
+                  {/* Sidebar Info */}
+                  <div className="md:col-span-4 space-y-6 flex flex-col">
+                    {/* Shipping Box */}
+                    <Card className="bg-white/[0.02] border-white/10 p-6 space-y-4">
+                      <h3 className="text-[10px] tracking-[0.2em] uppercase font-bold text-muted-foreground flex items-center gap-2">
+                        <MapPin size={12} /> Entrega Prioritária
+                      </h3>
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-white font-bold uppercase tracking-tight line-clamp-1">{address.street}, {address.number}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase opacity-60 tracking-widest">{address.city}, {address.state}</p>
                       </div>
-                    ) : (
-                      <button 
-                        onClick={handleFinalizeOrder}
-                        disabled={isLoading}
-                        className="order-1 md:order-2 w-full md:flex-1 btn-neon-green py-6 flex items-center justify-center gap-3 transition-all font-bold text-[12px] tracking-[0.4em]"
-                      >
-                        {isLoading ? <Loader2 className="animate-spin" /> : `FECHAR PEDIDO DE ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}`}
-                      </button>
-                    )}
+                      <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                        <Clock className="w-3 h-3 text-primary animate-pulse" />
+                        <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Receba até {deliveryDate.split(',')[1]}</span>
+                      </div>
+                    </Card>
+
+                    {/* Payment Intent Box */}
+                    <Card className="bg-white/[0.02] border-primary/20 border p-6 space-y-4 flex-1 flex flex-col justify-between relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full pointer-events-none" />
+                      
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Total Final</p>
+                          <p className="text-3xl font-display text-white tracking-tighter">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}
+                          </p>
+                        </div>
+                        
+                        <div className="pt-2">
+                           {isLoading ? (
+                             <div className="w-full bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center space-y-4 animate-pulse">
+                               <Loader2 className="animate-spin text-primary" size={24} />
+                               <div className="h-2 w-24 bg-white/10 rounded" />
+                             </div>
+                           ) : mpPreferenceId ? (
+                             <div className="animate-in fade-in zoom-in-95 duration-700">
+                               <Wallet 
+                                 initialization={{ preferenceId: mpPreferenceId }} 
+                               />
+                               <p className="text-[9px] text-center text-muted-foreground uppercase tracking-[0.1em] mt-4 leading-relaxed">
+                                 Ao clicar, você será levado ao ambiente seguro do Mercado Pago para finalizar com Pix ou Cartão.
+                               </p>
+                             </div>
+                           ) : (
+                             <Button 
+                               onClick={handleFinalizeOrder}
+                               className="w-full py-8 text-[12px] tracking-[0.3em] font-bold uppercase btn-neon-green"
+                             >
+                               Inicializar Checkout
+                             </Button>
+                           )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-center gap-2 pt-4 opacity-50 grayscale hover:grayscale-0 transition-all">
+                        <img src="https://logodownload.org/wp-content/uploads/2019/06/mercado-pago-logo.png" alt="MP Logo" className="h-4 w-auto brightness-200" />
+                      </div>
+                    </Card>
                   </div>
+                </div>
+
+                <button 
+                  onClick={() => setStep("shipping")}
+                  disabled={isLoading}
+                  className="mx-auto text-[10px] tracking-[0.2em] text-muted-foreground hover:text-white transition-colors flex items-center gap-2 uppercase font-bold py-4"
+                >
+                  <ArrowLeft size={12} /> Alterar endereço ou itens
+                </button>
               </motion.div>
             )}
 
