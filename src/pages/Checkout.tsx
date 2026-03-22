@@ -571,7 +571,7 @@ export default function Checkout() {
                 {/* Header Bridge */}
                 <div className="flex flex-col items-center text-center space-y-4 mb-12">
                   <div className="flex items-center gap-8 relative">
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-1 overflow-hidden">
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                       <img src={voidLogo} alt="Voiddrip" className="w-full h-full object-cover opacity-90" />
                     </div>
                     
@@ -585,7 +585,7 @@ export default function Checkout() {
                       />
                     </div>
 
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-1 overflow-hidden">
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                       <img src={mpLogo} alt="Mercado Pago" className="w-full h-full object-cover" />
                     </div>
                   </div>
@@ -606,7 +606,7 @@ export default function Checkout() {
                       {items.map((item) => (
                         <div key={item.id} className="flex gap-4 group">
                           <div className="w-20 h-20 bg-white/5 rounded-lg border border-white/10 overflow-hidden shrink-0">
-                            <img src={item.product.image_url?.split(',')[0]} alt={item.product.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
+                            <img src={item.product.image_url?.split(',')[0]} alt={item.product.name} className="w-full h-full object-cover" />
                           </div>
                           <div className="flex-1 flex flex-col justify-center">
                             <h4 className="text-sm font-bold tracking-tight mb-1">{item.product.name}</h4>
@@ -651,19 +651,21 @@ export default function Checkout() {
                           </p>
                         </div>
                         
-                        <div className="pt-2">
+                        <div className="pt-2 min-h-[90px] flex items-center justify-center">
                            {isLoading ? (
-                             <div className="w-full bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center space-y-4 animate-pulse">
+                             <div className="w-full bg-white/5 border border-white/10 rounded-xl p-8 flex flex-col items-center justify-center space-y-4 animate-pulse">
                                <Loader2 className="animate-spin text-primary" size={24} />
                                <div className="h-2 w-24 bg-white/10 rounded" />
                              </div>
                            ) : mpPreferenceId ? (
-                             <div className="animate-in fade-in zoom-in-95 duration-700">
-                               <Wallet 
-                                 initialization={{ preferenceId: mpPreferenceId }} 
-                               />
-                               <p className="text-[9px] text-center text-muted-foreground uppercase tracking-[0.1em] mt-4 leading-relaxed">
-                                 Ao clicar, você será levado ao ambiente seguro do Mercado Pago para finalizar com Pix ou Cartão.
+                             <div className="w-full animate-in fade-in zoom-in-95 duration-700">
+                               <div className="[&_.mercadopago-button]:!w-full [&_.mercadopago-button]:!border-none [&_.mercadopago-button]:!rounded-xl shadow-lg shadow-black/20">
+                                 <Wallet 
+                                   initialization={{ preferenceId: mpPreferenceId }} 
+                                 />
+                               </div>
+                               <p className="text-[9px] text-center text-muted-foreground uppercase tracking-[0.1em] mt-4 leading-relaxed px-2">
+                                 Finalize com Pix ou Cartão em ambiente protegido.
                                </p>
                              </div>
                            ) : (
@@ -677,8 +679,22 @@ export default function Checkout() {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-center gap-2 pt-4 opacity-70 grayscale hover:grayscale-0 transition-all">
-                        <img src={mpLogo} alt="Mercado Pago" className="h-6 w-auto object-contain" />
+                      <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full overflow-hidden border border-white/10 bg-white">
+                            <img src={mpLogo} alt="MP" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] text-white font-bold uppercase tracking-widest">Pagamento Seguro</span>
+                            <span className="text-[8px] text-muted-foreground uppercase opacity-60">Mercado Pago</span>
+                          </div>
+                        </div>
+                        
+                        {/* Custom Security Seal */}
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-[#009EE3]/10 border border-[#009EE3]/20 rounded-md">
+                          <ShieldCheck size={10} className="text-[#009EE3]" />
+                          <span className="text-[8px] text-[#009EE3] font-bold uppercase tracking-tighter">Verified SSL</span>
+                        </div>
                       </div>
                     </Card>
                   </div>
