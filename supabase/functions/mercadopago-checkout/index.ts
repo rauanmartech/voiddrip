@@ -23,10 +23,6 @@ serve(async (req) => {
 
     // INITIALIZING THE MERCADO PAGO SDK
     const MP_ACCESS_TOKEN = Deno.env.get('MERCADO_PAGO_ACCESS_TOKEN')
-    if (!MP_ACCESS_TOKEN) {
-      throw new Error('MERCADO_PAGO_ACCESS_TOKEN not configured')
-    }
-
     const client = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
     const preference = new Preference(client);
 
@@ -40,22 +36,28 @@ serve(async (req) => {
       picture_url: item.product.image_url?.split(',')[0]
     }))
 
+    // Detect browser origin or fallback
+    const origin = req.headers.get('origin') || 'https://yoursite.com'
+
     // CREATE PREFERENCE
     const result = await preference.create({
       body: {
         items: mpItems,
         payer: {
-          name: buyerData.fullName.split(' ')[0],
-          surname: buyerData.fullName.split(' ').slice(1).join(' '),
+          name: buyerData.fullName?.split(' ')[0] || 'Cliente',
+          surname: buyerData.fullName?.split(' ').slice(1).join(' ') || 'Void',
           email: buyerData.email,
         },
         external_reference: orderId,
         back_urls: {
-          success: `${req.headers.get('origin')}/success`,
-          failure: `${req.headers.get('origin')}/failure`,
-          pending: `${req.headers.get('origin')}/pending`,
+          success: `${origin}/success`,
+          failure: `${origin}/failure`,
+          pending: `${origin}/pending`,
         },
         auto_return: 'approved',
+        payment_methods: {
+          installments: 12,
+        }
       }
     });
 
