@@ -8,14 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import ProductModal from "@/components/ProductModal";
+import { useState } from "react";
+import { Product } from "@/components/ProductGrid";
 
 export default function Favorites() {
   const { wishlistItems, removeFromWishlist, wishlistCount } = useWishlist();
   const { addToCart } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const handleMoveToCart = (product: any) => {
-    addToCart(product, "M", "Padrão"); // Default values for quick conversion
-    // Não removemos mais da wishlist ao adicionar no carrinho a pedido do usuário
+    setSelectedProduct(product);
   };
 
   return (
@@ -176,6 +179,15 @@ export default function Favorites() {
       </main>
 
       <Footer />
+      
+      <AnimatePresence>
+        {selectedProduct && (
+          <ProductModal 
+            product={selectedProduct} 
+            onClose={() => setSelectedProduct(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

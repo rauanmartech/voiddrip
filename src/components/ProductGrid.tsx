@@ -38,7 +38,9 @@ const ProductGrid = ({ activeCategory, showOnlyAvailable, sortBy, limit = null }
   };
 
   const filteredProducts = products.filter(p => {
-    const matchesCategory = activeCategory === "Todos" || p.category === activeCategory;
+    const pCategory = p.category.trim().toLowerCase().normalize("NFC");
+    const aCategory = activeCategory.trim().toLowerCase().normalize("NFC");
+    const matchesCategory = activeCategory === "Todos" || pCategory === aCategory;
     const matchesAvailable = !showOnlyAvailable || p.stock_quantity > 0;
     return matchesCategory && matchesAvailable;
   });

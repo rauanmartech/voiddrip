@@ -15,7 +15,7 @@ const fetchAllProducts = async (): Promise<Product[]> => {
     .from("products")
     .select(`
       *,
-      product_views!product_views_product_id_fkey (
+      product_views (
         view_count
       )
     `);

@@ -11,6 +11,7 @@ import { CartProvider } from "./contexts/CartContext.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { WishlistProvider } from "./contexts/WishlistContext.tsx";
 import { CartDrawer } from "./components/CartDrawer.tsx";
+import AdminSidebar from "./components/AdminSidebar.tsx";
 
 // Route-level code splitting
 const About = lazy(() => import("./pages/About.tsx"));
@@ -49,6 +50,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <AdminSidebar />
               <CartDrawer />
               <Suspense fallback={<PageLoader />}>
                 <Routes>

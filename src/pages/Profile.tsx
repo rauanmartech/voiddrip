@@ -1,5 +1,6 @@
 import React, { useState, useEffect, memo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -268,8 +269,10 @@ const Profile = () => {
   const { user, signOut, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   
+  const { wishlistCount } = useWishlist();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [orderCount, setOrderCount] = useState(0);
   const [loading, setLoading] = useState(true);
   
   // Profile editing
@@ -318,6 +321,14 @@ const Profile = () => {
         .order("created_at", { ascending: false });
       
       setAddresses(addrData || []);
+
+      // Fetch order count
+      const { count: ordCount } = await supabase
+        .from("orders")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_id", user?.id);
+      
+      setOrderCount(ordCount || 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -489,7 +500,7 @@ const Profile = () => {
               <div className="flex justify-between items-end border-b border-white/5 pb-4">
                 <div className="space-y-1">
                   <p className="text-[10px] font-display text-muted-foreground tracking-widest uppercase">Favoritos</p>
-                  <p className="text-3xl font-display">12</p>
+                  <p className="text-3xl font-display">{String(wishlistCount).padStart(2, '0')}</p>
                 </div>
                 <button onClick={() => navigate("/favoritos")} className="p-3 text-muted-foreground hover:text-white border border-white/5 rounded-none hover:bg-white/5 transition-all">
                   <ArrowRight size={20} />
@@ -499,7 +510,7 @@ const Profile = () => {
               <div className="flex justify-between items-end">
                 <div className="space-y-1">
                   <p className="text-[10px] font-display text-muted-foreground tracking-widest uppercase">Pedidos</p>
-                  <p className="text-3xl font-display">00</p>
+                  <p className="text-3xl font-display">{String(orderCount).padStart(2, '0')}</p>
                 </div>
                 <button className="p-3 text-muted-foreground hover:text-white border border-white/5 rounded-none hover:bg-white/5 transition-all">
                   <ShoppingBag size={20} />

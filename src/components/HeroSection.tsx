@@ -1,6 +1,5 @@
 import heroBg from "@/assets/hero-bg.png";
 import { useMemo } from "react";
-import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
 
 const DisintegratingText = ({ text }: { text: string }) => {
@@ -39,7 +38,6 @@ const DisintegratingText = ({ text }: { text: string }) => {
 const HeroSection = () => {
   return (
     <section className="relative h-screen w-full overflow-hidden">
-      <AdminSidebar />
       <img
         src={heroBg}
         alt="Void Drip Society — streetwear urbano com céu cósmico"
