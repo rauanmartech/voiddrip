@@ -639,37 +639,53 @@ export default function Checkout() {
                     </div>
 
                     {/* Integrated Payment Section */}
-                    <div className="p-8 bg-primary/5 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 blur-[80px] rounded-full pointer-events-none" />
-                      
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10 text-center md:text-left">
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Total Final</p>
+                    <div className="p-8 bg-white/[0.01] relative overflow-hidden group">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+                        <div className="space-y-2">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Valor total</p>
                           <p className="text-4xl font-display text-white tracking-tighter">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}
                           </p>
+                          
+                          {/* Payment Options Dimension Icons */}
+                          <div className="flex items-center gap-3 pt-2 opacity-40">
+                            <div className="flex flex-col items-center gap-1">
+                               <div className="w-8 h-5 border border-white/20 rounded flex items-center justify-center bg-white/5">
+                                 <span className="text-[8px] font-bold">PIX</span>
+                               </div>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                               <div className="w-8 h-5 border border-white/20 rounded flex items-center justify-center bg-white/5">
+                                 <CreditCard size={10} />
+                               </div>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                               <div className="w-8 h-5 border border-white/20 rounded flex items-center justify-center bg-white/5">
+                                 <Package size={10} />
+                               </div>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="w-full md:w-72 min-h-[70px] flex items-center justify-center">
+                        <div className="w-full md:w-72 flex items-center justify-center">
                            {isLoading ? (
-                             <div className="w-full bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center space-y-4 animate-pulse">
-                               <Loader2 className="animate-spin text-primary" size={24} />
+                             <div className="w-full h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center animate-pulse">
+                               <Loader2 className="animate-spin text-primary" size={20} />
                              </div>
                            ) : mpPreferenceId ? (
                              <div className="w-full animate-in fade-in zoom-in-95 duration-700">
-                               <div className="[&_.mercadopago-button]:!w-full [&_.mercadopago-button]:!border-none [&_.mercadopago-button]:!rounded-xl shadow-2xl shadow-primary/20">
+                               <div className="[&_.mercadopago-button]:!w-full [&_.mercadopago-button]:!border-none [&_.mercadopago-button]:!rounded-xl shadow-md shadow-black/40">
                                  <Wallet 
                                    initialization={{ preferenceId: mpPreferenceId }} 
                                  />
                                </div>
-                               <p className="text-[9px] text-center text-muted-foreground uppercase tracking-[0.1em] mt-3">Ambiente 100% Protegido</p>
                              </div>
                            ) : (
                              <Button 
                                onClick={handleFinalizeOrder}
-                               className="w-full py-7 text-[11px] tracking-[0.3em] font-bold uppercase btn-neon-green"
+                               className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase btn-neon-green"
                              >
-                               Inicializar Checkout
+                               Finalizar Pedido
                              </Button>
                            )}
                         </div>
