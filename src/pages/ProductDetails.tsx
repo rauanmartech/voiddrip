@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useProducts } from "@/hooks/useProducts";
+import { useProductMeta } from "@/hooks/useProductMeta";
 import { useCart } from "@/contexts/CartContext";
 import { ShoppingBag, ChevronLeft, ChevronRight, ArrowLeft, ShieldCheck, Truck, Clock, Timer } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +16,9 @@ const ProductDetails = () => {
   const { addToCart, toggleCart } = useCart();
 
   const product = useMemo(() => products.find((p) => p.id === id), [products, id]);
+
+  // Dynamically update <head> meta tags for OG/Share support
+  useProductMeta(product ?? null);
   const relatedProducts = useMemo(() => {
     if (!product) return [];
     return products
