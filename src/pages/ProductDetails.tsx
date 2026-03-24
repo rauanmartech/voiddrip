@@ -7,6 +7,7 @@ import { ShoppingBag, ChevronLeft, ChevronRight, ArrowLeft, ShieldCheck, Truck, 
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import ProductCard from "@/components/ProductCard";
+import SharePanel from "@/components/SharePanel";
 import { Product } from "@/components/ProductGrid";
 
 const ProductDetails = () => {
@@ -379,6 +380,16 @@ const ProductDetails = () => {
                     <span className="font-body text-xs text-white">100% Garantida</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Share Panel */}
+              <div className="mt-4">
+                <SharePanel
+                  productId={product.id}
+                  productName={product.name}
+                  productDescription={product.description}
+                  productPrice={product.price}
+                />
               </div>
             </div>
 
