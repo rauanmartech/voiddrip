@@ -2,6 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/produto/:id", "destination": "/api/produto/:id" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
