@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Social media crawler User-Agent patterns
@@ -31,30 +30,52 @@ function isSocialBot(userAgent: string): boolean {
   return BOT_PATTERNS.some((pattern) => ua.includes(pattern));
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const userAgent = request.headers.get("user-agent") ?? "";
 
   // Only intercept /produto/:id routes
   const productMatch = pathname.match(/^\/produto\/([^/]+)$/);
   if (!productMatch) {
-    return NextResponse.next();
+    // Not a product page — serve SPA normally
+    return new Response(null, { status: 200 });
   }
 
-  // Only intercept if it's a social media bot
+  // Regular user — serve the SPA normally
   if (!isSocialBot(userAgent)) {
-    return NextResponse.next();
+    return new Response(null, { status: 200 });
   }
 
+  // It's a bot on a product page — proxy the OG HTML
   const productId = productMatch[1];
-
-  // Proxy to the Supabase Edge Function that returns product-specific OG HTML
   const ogMetaUrl = `https://vfjmwbxvticnwfmvoonc.supabase.co/functions/v1/og-meta?id=${encodeURIComponent(productId)}`;
 
-  return NextResponse.rewrite(ogMetaUrl);
+  try {
+    // Manual proxy: fetch from Supabase Edge Function and return the HTML directly
+    const ogResponse = await fetch(ogMetaUrl, {
+      headers: {
+        "User-Agent": "Vercel-Edge-Middleware/1.0",
+      },
+    });
+
+    const html = await ogResponse.text();
+
+    return new Response(html, {
+      status: ogResponse.status,
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",
+        "X-OG-Served-By": "edge-middleware",
+      },
+    });
+  } catch (err) {
+    // On error, fall through to normal SPA
+    console.error("og-meta proxy error:", err);
+    return new Response(null, { status: 200 });
+  }
 }
 
 export const config = {
-  // Only run middleware on product detail pages
+  // Run on product detail pages only
   matcher: ["/produto/:path*"],
 };
