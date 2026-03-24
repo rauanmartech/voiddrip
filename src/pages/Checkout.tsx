@@ -88,6 +88,32 @@ export default function Checkout() {
     }
   }, [step, mpPreferenceId, isLoading, items.length]);
 
+  // PIX POLLING: Monitor order status in real-time when on payment step
+  useEffect(() => {
+    let interval: number;
+
+    if (step === "payment" && orderId) {
+      // Check every 3 seconds if the order was approved via webhook
+      interval = window.setInterval(async () => {
+        const { data, error } = await supabase
+          .from("orders")
+          .select("status")
+          .eq("id", orderId)
+          .single();
+
+        if (data && (data.status === "paid" || data.status === "approved")) {
+          clearInterval(interval);
+          setStep("success");
+          toast.success("Pagamento confirmado via Pix!");
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [step, orderId]);
+
   // --- Logic ---
 
   useEffect(() => {

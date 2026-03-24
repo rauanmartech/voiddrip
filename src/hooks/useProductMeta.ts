@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE_URL = "https://voiddrip.vercel.app";
+const SITE_URL = "https://voiddrip.com.br";
 const SITE_NAME = "Void Drip Society";
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
 
