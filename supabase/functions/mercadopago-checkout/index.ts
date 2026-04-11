@@ -37,7 +37,7 @@ serve(async (req) => {
     }))
 
     // Detect browser origin or fallback
-    const origin = req.headers.get('origin') || 'https://yoursite.com'
+    const origin = req.headers.get('origin') || 'https://voiddrip.com.br'
 
     // CREATE PREFERENCE
     const result = await preference.create({
