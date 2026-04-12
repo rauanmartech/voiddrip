@@ -201,14 +201,14 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-8 mt-8 pb-32"
+      className="space-y-12 mt-12 md:mt-20 pb-32"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-10">
         <div className="flex items-center gap-3">
           <CreditCard className="text-primary" size={20} />
-          <h3 className="font-display text-sm uppercase tracking-widest">Cartão de Crédito</h3>
+          <h3 className="font-display text-base md:text-lg uppercase tracking-[0.3em]">Cartão de Crédito</h3>
         </div>
-        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[9px] text-primary font-bold uppercase tracking-tighter">
+        <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded text-[9px] text-primary font-bold uppercase tracking-tighter">
           <ShieldCheck size={10} /> PCI Certified
         </div>
       </div>
