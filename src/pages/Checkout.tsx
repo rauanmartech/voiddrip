@@ -5,14 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight, Lock, MapPin, Truck, Check, Package, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, User as UserIcon, ShieldCheck, Mail, Smartphone, Star, CreditCard, Clock } from "lucide-react";
-import { Wallet } from "@mercadopago/sdk-react";
 import voidLogo from "../assets/voiddrip.jpeg";
-import mpLogo from "../assets/mercado-pago.png";
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { CardPaymentForm } from "@/components/CardPaymentForm";
+import { PixPayment } from "@/components/PixPayment";
 
 // --- Types & Constants ---
 type CheckoutStep = "identification" | "shipping" | "payment" | "success";
@@ -39,6 +39,7 @@ export default function Checkout() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [mpPreferenceId, setMpPreferenceId] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
+  const [paymentStep, setPaymentStep] = useState<"choice" | "card" | "pix">("choice");
 
   // Shake animation configuration
   const shakeAnimation = {
@@ -81,12 +82,7 @@ export default function Checkout() {
     }
   }, [user]);
 
-  // BRIDGE LOGIC: Auto-create order and preference when reaching payment step
-  useEffect(() => {
-    if (step === "payment" && !mpPreferenceId && !isLoading && items.length > 0) {
-      handleFinalizeOrder();
-    }
-  }, [step, mpPreferenceId, isLoading, items.length]);
+
 
   // PIX POLLING: Monitor order status in real-time when on payment step
   useEffect(() => {
@@ -250,32 +246,9 @@ export default function Checkout() {
       });
       if (addrError) throw addrError;
 
-      // 4. Create Mercado Pago Preference
-      const { data: mpData, error: mpError } = await supabase.functions.invoke('mercadopago-checkout', {
-        body: {
-          orderId: order.id,
-          items: items.map(item => ({
-            ...item,
-            product: {
-              ...item.product,
-              image_url: item.product.image_url // pass standard field
-            }
-          })),
-          buyerData
-        }
-      });
-
-      if (mpError) throw mpError;
-
-      if (mpData?.preferenceId) {
-         setMpPreferenceId(mpData.preferenceId);
-         toast.success("Resumo do pedido pronto!");
-      } else if (mpData?.checkoutUrl) {
-         // Fallback if SDK fails or preferenceId not returned
-         window.location.href = mpData.checkoutUrl;
-      } else {
-         throw new Error("Não foi possível gerar o link de pagamento.");
-      }
+      setOrderId(order.id);
+      toast.success("Pedido gerado com sucesso!");
+      // Aqui entrará a lógica de Controle Total do Mercado Pago
 
     } catch (e: any) {
       toast.error(`Erro: ${e.message}`);
@@ -622,7 +595,9 @@ export default function Checkout() {
                     </div>
 
                     <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
-                      <img src={mpLogo} alt="Mercado Pago" className="w-full h-full object-cover" />
+                      <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
+                        <CreditCard className="text-primary" size={20} />
+                      </div>
                     </div>
                   </div>
                   <h2 className="font-display text-xl tracking-[0.3em] uppercase">Revisão e Pagamento</h2>
@@ -698,14 +673,58 @@ export default function Checkout() {
                              <div className="w-full h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center animate-pulse">
                                <Loader2 className="animate-spin text-primary" size={20} />
                              </div>
-                           ) : mpPreferenceId ? (
-                             <div className="w-full animate-in fade-in zoom-in-95 duration-700">
-                               <div className="[&_.mercadopago-button]:!w-full [&_.mercadopago-button]:!border-none [&_.mercadopago-button]:!rounded-xl shadow-md shadow-black/40">
-                                 <Wallet 
-                                   initialization={{ preferenceId: mpPreferenceId }} 
-                                 />
-                               </div>
-                             </div>
+                           ) : orderId ? (
+                             <AnimatePresence mode="wait">
+                               {paymentStep === "choice" && (
+                                 <motion.div 
+                                   initial={{ opacity: 0 }}
+                                   animate={{ opacity: 1 }}
+                                   exit={{ opacity: 0 }}
+                                   className="w-full space-y-3"
+                                 >
+                                    <Button 
+                                      onClick={() => setPaymentStep("card")}
+                                      className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase bg-white text-black hover:bg-primary transition-colors"
+                                    >
+                                      <CreditCard className="mr-2" size={16} /> Pagar com Cartão
+                                    </Button>
+                                    <Button 
+                                      onClick={() => setPaymentStep("pix")}
+                                      className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase bg-white/5 border border-white/10 text-white hover:bg-white/10"
+                                    >
+                                      ⚡ Checkout via Pix
+                                    </Button>
+                                 </motion.div>
+                               )}
+
+                               {paymentStep === "card" && (
+                                 <div className="fixed inset-0 z-[100] bg-[#030303] overflow-y-auto px-6 py-12 md:p-20">
+                                   <div className="max-w-xl mx-auto">
+                                      <CardPaymentForm 
+                                        orderId={orderId}
+                                        amount={cartTotal}
+                                        email={buyerData.email}
+                                        onSuccess={() => setStep("success")}
+                                        onCancel={() => setPaymentStep("choice")}
+                                      />
+                                   </div>
+                                 </div>
+                               )}
+
+                               {paymentStep === "pix" && (
+                                 <div className="fixed inset-0 z-[100] bg-[#030303] overflow-y-auto px-6 py-12 md:p-20">
+                                   <div className="max-w-xl mx-auto">
+                                      <PixPayment 
+                                        orderId={orderId}
+                                        amount={cartTotal}
+                                        email={buyerData.email}
+                                        onSuccess={() => setStep("success")}
+                                        onCancel={() => setPaymentStep("choice")}
+                                      />
+                                   </div>
+                                 </div>
+                               )}
+                             </AnimatePresence>
                            ) : (
                              <Button 
                                onClick={handleFinalizeOrder}
@@ -719,14 +738,11 @@ export default function Checkout() {
 
                       <div className="flex items-center justify-between pt-8 mt-8 border-t border-white/5 opacity-80">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full overflow-hidden border border-white/10 bg-white">
-                            <img src={mpLogo} alt="MP" className="w-full h-full object-cover" />
-                          </div>
-                          <span className="text-[9px] text-white/60 font-medium uppercase tracking-widest">Pagamento via Mercado Pago</span>
+                          <span className="text-[9px] text-white/60 font-medium uppercase tracking-widest">Pagamento 100% Seguro</span>
                         </div>
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-[#009EE3]/10 border border-[#009EE3]/20 rounded-md">
-                          <ShieldCheck size={10} className="text-[#009EE3]" />
-                          <span className="text-[8px] text-[#009EE3] font-bold uppercase tracking-tighter">Compra Garantida</span>
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 border border-primary/20 rounded-md">
+                          <ShieldCheck size={10} className="text-primary" />
+                          <span className="text-[8px] text-primary font-bold uppercase tracking-tighter">Compra Garantida</span>
                         </div>
                       </div>
                     </div>

@@ -12,10 +12,7 @@ import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { WishlistProvider } from "./contexts/WishlistContext.tsx";
 import { CartDrawer } from "./components/CartDrawer.tsx";
 import AdminSidebar from "./components/AdminSidebar.tsx";
-import { initMercadoPago } from "@mercadopago/sdk-react";
 
-// Initialize Mercado Pago with public key
-initMercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY || "APP_USR-cae21cc5-66bd-4eb0-a6e6-682a39cc1e59");
 
 // Route-level code splitting
 const About = lazy(() => import("./pages/About.tsx"));
