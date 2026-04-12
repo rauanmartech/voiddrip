@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, Lock, MapPin, Truck, Check, Package, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, User as UserIcon, ShieldCheck, Mail, Smartphone, Star, CreditCard, Clock } from "lucide-react";
+import { ChevronRight, Lock, MapPin, Truck, Check, Package, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, User as UserIcon, ShieldCheck, Mail, Smartphone, Star, CreditCard, Clock, Banknote, DollarSign } from "lucide-react";
 import voidLogo from "../assets/voiddrip.jpeg";
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
@@ -690,9 +690,9 @@ export default function Checkout() {
                                     </Button>
                                     <Button 
                                       onClick={() => setPaymentStep("pix")}
-                                      className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase bg-white/5 border border-white/10 text-white hover:bg-white/10"
+                                      className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all group"
                                     >
-                                      ⚡ Checkout via Pix
+                                      <DollarSign className="mr-2 text-primary group-hover:scale-110 transition-transform" size={16} /> Pagamento via Pix
                                     </Button>
                                  </motion.div>
                                )}
