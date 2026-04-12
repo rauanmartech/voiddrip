@@ -11,7 +11,6 @@ import { CartProvider } from "./contexts/CartContext.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { WishlistProvider } from "./contexts/WishlistContext.tsx";
 import { CartDrawer } from "./components/CartDrawer.tsx";
-import AdminSidebar from "./components/AdminSidebar.tsx";
 
 
 // Route-level code splitting
@@ -25,6 +24,7 @@ const Profile = lazy(() => import("./pages/Profile.tsx"));
 const Success = lazy(() => import("./pages/Success.tsx"));
 const Failure = lazy(() => import("./pages/Failure.tsx"));
 const Pending = lazy(() => import("./pages/Pending.tsx"));
+const Orders = lazy(() => import("./pages/Orders.tsx"));
 
 // Minimal page loader
 const PageLoader = () => (
@@ -54,7 +54,6 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <AdminSidebar />
               <CartDrawer />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -69,6 +68,7 @@ const App = () => (
                   <Route path="/success" element={<Success />} />
                   <Route path="/failure" element={<Failure />} />
                   <Route path="/pending" element={<Pending />} />
+                  <Route path="/pedidos" element={<Orders />} />
                   <Route path="/admin" element={<AdminArea />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

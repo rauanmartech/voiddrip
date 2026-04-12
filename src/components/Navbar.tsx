@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ShoppingBag, Menu, User, LogOut, Settings, LayoutDashboard, Heart } from "lucide-react";
+import { ShoppingBag, Menu, User, LogOut, Settings, LayoutDashboard, Heart, Home } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import MobileMenu from "./MobileMenu";
 import { usePrefetchProducts } from "@/hooks/useProducts";
@@ -50,9 +50,22 @@ const Navbar = () => {
         }`}
       >
         <div className="container mx-auto flex items-center justify-between py-5 px-6">
-          <Link to="/" className="font-display text-sm tracking-[0.3em] text-foreground">
-            VOID DRIP
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/" className="font-display text-sm tracking-[0.3em] text-foreground">
+              VOID DRIP
+            </Link>
+            <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
+            <Link 
+              to="/" 
+              className="p-2 text-muted-foreground hover:text-primary transition-all duration-300 group relative"
+              title="Voltar para a Loja"
+            >
+              <Home size={18} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black text-[8px] tracking-widest text-white px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 uppercase">
+                Home
+              </span>
+            </Link>
+          </div>
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
@@ -74,11 +87,23 @@ const Navbar = () => {
                     className="flex items-center gap-2 group"
                   >
                     <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/5 group-hover:border-primary/50 transition-colors overflow-hidden">
-                      {user.user_metadata?.avatar_url ? (
-                        <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
+                      {user.user_metadata?.avatar_url && user.user_metadata.avatar_url.trim() !== "" ? (
+                        <img 
+                          src={user.user_metadata.avatar_url} 
+                          alt="Profile" 
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover" 
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback');
+                            if (fallback) fallback.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      
+                      <div className={`avatar-fallback ${user.user_metadata?.avatar_url ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
                         <User size={14} className="text-muted-foreground" />
-                      )}
+                      </div>
                     </div>
                   </button>
 
@@ -95,10 +120,22 @@ const Navbar = () => {
                           <p className="text-[10px] text-white truncate font-body">{user.email}</p>
                         </div>
                         
+                        <Link to="/pedidos" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
+                          <ShoppingBag size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                          <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Meus Pedidos</span>
+                        </Link>
+
                         <Link to="/perfil" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
                           <Settings size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
                           <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Minha Conta</span>
                         </Link>
+
+                        {user.email === "rauanrocha.martech@gmail.com" && (
+                          <Link to="/admin" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group border-y border-white/5">
+                            <LayoutDashboard size={14} className="text-primary/70 group-hover:text-primary transition-colors" />
+                            <span className="font-display text-[9px] tracking-[0.2em] text-primary uppercase">Painel Admin</span>
+                          </Link>
+                        )}
 
                         <button 
                           onClick={async () => {

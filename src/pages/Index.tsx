@@ -11,7 +11,7 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   const [activeCategory, setActiveCategory] = useState("Todos");
-  const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
+  const [showUnavailable, setShowUnavailable] = useState(false);
   const [sortBy, setSortBy] = useState("popular");
 
   return (
@@ -37,14 +37,14 @@ const Index = () => {
             onCategoryChange={setActiveCategory}
           />
           <GridControls
-            showOnlyAvailable={showOnlyAvailable}
-            setShowOnlyAvailable={setShowOnlyAvailable}
+            showUnavailable={showUnavailable}
+            setShowUnavailable={setShowUnavailable}
             sortBy={sortBy}
             setSortBy={setSortBy}
           />
           <ProductGrid
             activeCategory={activeCategory}
-            showOnlyAvailable={showOnlyAvailable}
+            showUnavailable={showUnavailable}
             sortBy={sortBy}
             limit={null}
           />

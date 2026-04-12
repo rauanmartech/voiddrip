@@ -21,12 +21,12 @@ export interface Product {
 
 interface ProductGridProps {
   activeCategory: string;
-  showOnlyAvailable: boolean;
+  showUnavailable: boolean;
   sortBy: string;
   limit?: number | null;
 }
 
-const ProductGrid = ({ activeCategory, showOnlyAvailable, sortBy, limit = null }: ProductGridProps) => {
+const ProductGrid = ({ activeCategory, showUnavailable, sortBy, limit = null }: ProductGridProps) => {
   const navigate = useNavigate();
 
   // ── React Query: cached, shared, no duplicate fetches ──────────────────────
@@ -41,7 +41,7 @@ const ProductGrid = ({ activeCategory, showOnlyAvailable, sortBy, limit = null }
     const pCategory = p.category.trim().toLowerCase().normalize("NFC");
     const aCategory = activeCategory.trim().toLowerCase().normalize("NFC");
     const matchesCategory = activeCategory === "Todos" || pCategory === aCategory;
-    const matchesAvailable = !showOnlyAvailable || p.stock_quantity > 0;
+    const matchesAvailable = showUnavailable || p.stock_quantity > 0;
     return matchesCategory && matchesAvailable;
   });
 

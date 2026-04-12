@@ -2,8 +2,8 @@ import { useState } from "react";
 import { ChevronDown, Check, Filter, ListFilter } from "lucide-react";
 
 interface GridControlsProps {
-  showOnlyAvailable: boolean;
-  setShowOnlyAvailable: (val: boolean) => void;
+  showUnavailable: boolean;
+  setShowUnavailable: (val: boolean) => void;
   sortBy: string;
   setSortBy: (val: string) => void;
 }
@@ -17,7 +17,7 @@ const sortOptions = [
   { id: "price-desc", label: "Maior Preço" },
 ];
 
-const GridControls = ({ showOnlyAvailable, setShowOnlyAvailable, sortBy, setSortBy }: GridControlsProps) => {
+const GridControls = ({ showUnavailable, setShowUnavailable, sortBy, setSortBy }: GridControlsProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const currentSortLabel = sortOptions.find(opt => opt.id === sortBy)?.label || "Ordenar por";
@@ -26,14 +26,14 @@ const GridControls = ({ showOnlyAvailable, setShowOnlyAvailable, sortBy, setSort
     <div className="container mx-auto px-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
       <div className="flex items-center gap-6">
         <button
-          onClick={() => setShowOnlyAvailable(!showOnlyAvailable)}
+          onClick={() => setShowUnavailable(!showUnavailable)}
           className="flex items-center gap-3 group transition-all"
         >
-          <div className={`w-5 h-5 border rounded-sm flex items-center justify-center transition-colors ${showOnlyAvailable ? 'bg-primary border-primary' : 'border-muted-foreground/30 bg-background'}`}>
-            {showOnlyAvailable && <Check size={14} className="text-primary-foreground" />}
+          <div className={`w-5 h-5 border rounded-sm flex items-center justify-center transition-colors ${showUnavailable ? 'bg-primary border-primary' : 'border-muted-foreground/30 bg-background'}`}>
+            {showUnavailable && <Check size={14} className="text-primary-foreground" />}
           </div>
           <span className="font-display text-[10px] tracking-[0.2em] text-muted-foreground group-hover:text-foreground uppercase transition-colors">
-            Apenas Disponíveis
+            Mostrar Indisponíveis
           </span>
         </button>
       </div>
