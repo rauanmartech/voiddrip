@@ -119,19 +119,25 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [items, user, isInitialized]);
 
-  const mapDbToCartItem = (dbItem: any): CartItem => ({
-    id: `${dbItem.product_id}-${dbItem.size}-${dbItem.color}`,
-    product: dbItem.product,
-    quantity: dbItem.quantity,
-    size: dbItem.size || "Padrão",
-    color: dbItem.color || "Padrão"
-  });
+  const mapDbToCartItem = (dbItem: any): CartItem => {
+    const size = dbItem.size || "Padrão";
+    const color = dbItem.color || "Padrão";
+    return {
+      id: `${dbItem.product_id}-${size}-${color}`,
+      product: dbItem.product,
+      quantity: dbItem.quantity,
+      size,
+      color
+    };
+  };
 
   const toggleCart = () => setIsCartOpen(prev => !prev);
 
   // --- ACTIONS ---
 
-  const addToCart = async (product: Product, size: string, color: string) => {
+  const addToCart = async (product: Product, sizeInput: string, colorInput: string) => {
+    const size = sizeInput || "Padrão";
+    const color = colorInput || "Padrão";
     const newItemId = `${product.id}-${size}-${color}`;
     
     // 1. Optimistic Update
@@ -156,13 +162,14 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.from("carts").upsert({
         user_id: user.id,
         product_id: product.id,
-        size,
-        color,
+        size: size === "Padrão" ? null : size,
+        color: color === "Padrão" ? null : color,
         quantity: Math.min(newQty, product.stock_quantity)
-      });
+      }, { onConflict: 'user_id,product_id,size,color' });
+      
       if (error) {
         console.error("Add error", error);
-        toast.error("Erro ao adicionar no banco");
+        toast.error("Erro ao sincronizar carrinho");
       }
       setIsSyncing(false);
     }
@@ -195,7 +202,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase
         .from("carts")
         .delete()
-        .match(matchCriteria);
+        .match({ 
+          user_id: user.id, 
+          product_id: item.product.id,
+          size: item.size === "Padrão" ? null : item.size,
+          color: item.color === "Padrão" ? null : item.color
+        });
 
       if (error) {
         console.error("Delete error", error);
@@ -231,7 +243,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase
         .from("carts")
         .update({ quantity })
-        .match(matchCriteria);
+        .match({ 
+          user_id: user.id, 
+          product_id: item.product.id,
+          size: item.size === "Padrão" ? null : item.size,
+          color: item.color === "Padrão" ? null : item.color
+        });
 
       if (error) {
         console.error("Update error", error);

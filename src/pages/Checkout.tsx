@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, Lock, MapPin, Truck, Check, Package, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, User as UserIcon, ShieldCheck, Mail, Smartphone, Star, CreditCard, Clock, Banknote, DollarSign } from "lucide-react";
+import { ChevronRight, Lock, MapPin, Truck, Check, Package, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, User as UserIcon, ShieldCheck, Mail, Smartphone, Star, CreditCard, Clock, Banknote, DollarSign, QrCode } from "lucide-react";
 import voidLogo from "../assets/voiddrip.jpeg";
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
@@ -677,23 +677,36 @@ export default function Checkout() {
                              <AnimatePresence mode="wait">
                                {paymentStep === "choice" && (
                                  <motion.div 
-                                   initial={{ opacity: 0 }}
-                                   animate={{ opacity: 1 }}
-                                   exit={{ opacity: 0 }}
-                                   className="w-full space-y-3"
+                                   initial={{ opacity: 0, scale: 0.95 }}
+                                   animate={{ opacity: 1, scale: 1 }}
+                                   exit={{ opacity: 0, scale: 0.95 }}
+                                   className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4"
                                  >
-                                    <Button 
+                                    <button 
                                       onClick={() => setPaymentStep("card")}
-                                      className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase bg-white text-black hover:bg-primary transition-colors"
+                                      className="group relative h-32 md:h-40 bg-white/[0.03] border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:bg-white/[0.05] transition-all"
                                     >
-                                      <CreditCard className="mr-2" size={16} /> Pagar com Cartão
-                                    </Button>
-                                    <Button 
+                                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                        <CreditCard size={24} />
+                                      </div>
+                                      <span className="text-[10px] tracking-[0.3em] font-black uppercase text-white/50 group-hover:text-white transition-colors">Cartão de Crédito</span>
+                                      
+                                      {/* Border Glow */}
+                                      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-[0_0_30px_rgba(139,255,0,0.1)]" />
+                                    </button>
+
+                                    <button 
                                       onClick={() => setPaymentStep("pix")}
-                                      className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all group"
+                                      className="group relative h-32 md:h-40 bg-white/[0.03] border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:bg-white/[0.05] transition-all"
                                     >
-                                      <DollarSign className="mr-2 text-primary group-hover:scale-110 transition-transform" size={16} /> Pagamento via Pix
-                                    </Button>
+                                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                        <QrCode size={24} />
+                                      </div>
+                                      <span className="text-[10px] tracking-[0.3em] font-black uppercase text-white/50 group-hover:text-white transition-colors">Instantâneo via PIX</span>
+                                      
+                                      {/* Border Glow */}
+                                      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-[0_0_30px_rgba(139,255,0,0.1)]" />
+                                    </button>
                                  </motion.div>
                                )}
 
