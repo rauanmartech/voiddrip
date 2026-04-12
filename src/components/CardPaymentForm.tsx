@@ -56,93 +56,116 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
   }>({});
 
   useEffect(() => {
-    const initMP = async () => {
+    const initMP = () => {
       if (!window.MercadoPago) {
-        const script = document.createElement("script");
-        script.src = "https://sdk.mercadopago.com/js/v2";
-        script.onload = () => setupFields();
-        document.body.appendChild(script);
+        console.log("Mercado Pago SDK not found yet, retrying...");
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (window.MercadoPago) {
+            clearInterval(interval);
+            setupFields();
+          } else if (attempts > 50) {
+            clearInterval(interval);
+            setIsLoading(false);
+            toast.error("Erro ao carregar sistema de pagamento. Por favor, atualize a página.");
+          }
+        }, 100);
       } else {
         setupFields();
       }
     };
 
     const setupFields = () => {
-      if (mpRef.current && fieldsRef.current.cardNumber) return;
+      try {
+        if (mpRef.current && fieldsRef.current.cardNumber) return;
 
-      const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY || "APP_USR-cae21cc5-66bd-4eb0-a6e6-682a39cc1e59", {
-        locale: 'pt-BR'
-      });
-      mpRef.current = mp;
+        console.log("Initializing Mercado Pago with Public Key...");
+        const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY || "APP_USR-cae21cc5-66bd-4eb0-a6e6-682a39cc1e59", {
+          locale: 'pt-BR'
+        });
 
-      // Create secure fields
-      const fields = mp.fields();
-      fieldsRef.current.instance = fields;
-      
-      fieldsRef.current.cardNumber = fields.create('cardNumber', {
-        placeholder: "0000 0000 0000 0000",
-        style: {
-          color: "#ffffff",
-          placeholder: { color: "#555555" }
+        if (typeof mp.fields !== 'function') {
+          console.log("MP Instance:", mp);
+          // Fallback check: some versions might have it nested or different
+          throw new Error("A instância do Mercado Pago não suporta o método 'fields'. Verifique a chave pública.");
         }
-      });
-      fieldsRef.current.cardNumber.mount('form-checkout__cardNumber');
 
-      fieldsRef.current.expirationDate = fields.create('expirationDate', {
-        placeholder: "MM/AA",
-        style: {
-          color: "#ffffff",
-          placeholder: { color: "#555555" }
-        }
-      });
-      fieldsRef.current.expirationDate.mount('form-checkout__expirationDate');
+        mpRef.current = mp;
 
-      fieldsRef.current.securityCode = fields.create('securityCode', {
-        placeholder: "CVV",
-        style: {
-          color: "#ffffff",
-          placeholder: { color: "#555555" }
-        }
-      });
-      fieldsRef.current.securityCode.mount('form-checkout__securityCode');
-
-      // BIN Change listener
-      fieldsRef.current.cardNumber.on('binChange', async (data: any) => {
-        const { bin } = data;
-        if (bin) {
-          try {
-            const { results } = await mp.getPaymentMethods({ bin });
-            const method = results[0];
-            setPaymentMethodId(method.id);
-            
-            // Update fields settings (validations)
-            fieldsRef.current.cardNumber.update({ settings: method.settings[0].card_number });
-            fieldsRef.current.securityCode.update({ settings: method.settings[0].security_code });
-
-            // Fetch Issuers
-            const issuersList = await mp.getIssuers({ paymentMethodId: method.id, bin });
-            setIssuers(issuersList);
-            if (issuersList.length > 0) setFormData(prev => ({ ...prev, issuer: issuersList[0].id }));
-
-            // Fetch Installments
-            const installmentsData = await mp.getInstallments({
-              amount: String(amount),
-              bin,
-              paymentTypeId: 'credit_card'
-            });
-            setInstallments(installmentsData[0].payer_costs);
-          } catch (e) {
-            console.error("Error on bin change:", e);
+        // Create secure fields
+        const fields = mp.fields();
+        fieldsRef.current.instance = fields;
+        
+        fieldsRef.current.cardNumber = fields.create('cardNumber', {
+          placeholder: "0000 0000 0000 0000",
+          style: {
+            color: "#ffffff",
+            placeholder: { color: "#555555" }
           }
-        }
-      });
+        });
+        fieldsRef.current.cardNumber.mount('form-checkout__cardNumber');
 
-      // Identification Types
-      mp.getIdentificationTypes().then((types: any) => {
-        setIdentificationTypes(types);
-      });
+        fieldsRef.current.expirationDate = fields.create('expirationDate', {
+          placeholder: "MM/AA",
+          style: {
+            color: "#ffffff",
+            placeholder: { color: "#555555" }
+          }
+        });
+        fieldsRef.current.expirationDate.mount('form-checkout__expirationDate');
 
-      setIsLoading(false);
+        fieldsRef.current.securityCode = fields.create('securityCode', {
+          placeholder: "CVV",
+          style: {
+            color: "#ffffff",
+            placeholder: { color: "#555555" }
+          }
+        });
+        fieldsRef.current.securityCode.mount('form-checkout__securityCode');
+
+        // BIN Change listener
+        fieldsRef.current.cardNumber.on('binChange', async (data: any) => {
+          const { bin } = data;
+          if (bin) {
+            try {
+              const { results } = await mp.getPaymentMethods({ bin });
+              const method = results[0];
+              setPaymentMethodId(method.id);
+              
+              // Update fields settings (validations)
+              fieldsRef.current.cardNumber.update({ settings: method.settings[0].card_number });
+              fieldsRef.current.securityCode.update({ settings: method.settings[0].security_code });
+
+              // Fetch Issuers
+              const issuersList = await mp.getIssuers({ paymentMethodId: method.id, bin });
+              setIssuers(issuersList);
+              if (issuersList.length > 0) setFormData(prev => ({ ...prev, issuer: issuersList[0].id }));
+
+              // Fetch Installments
+              const installmentsData = await mp.getInstallments({
+                amount: String(amount),
+                bin,
+                paymentTypeId: 'credit_card'
+              });
+              setInstallments(installmentsData[0].payer_costs);
+            } catch (e) {
+              console.error("Error on bin change:", e);
+            }
+          }
+        });
+
+        // Identification Types
+        mp.getIdentificationTypes().then((types: any) => {
+          setIdentificationTypes(types);
+        });
+
+        setIsLoading(false);
+      } catch (err: any) {
+        console.error("Erro na inicialização do MP:", err);
+        toast.error("Erro ao inicializar campos de cartão: " + err.message);
+        setIsLoading(false);
+      }
     };
 
     initMP();
