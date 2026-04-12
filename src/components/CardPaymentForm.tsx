@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { CreditCard, ShieldCheck, Loader2, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { CreditCard, ShieldCheck, Info, Loader2, ChevronDown } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
@@ -22,9 +22,9 @@ interface CardPaymentFormProps {
 }
 
 const STYLES = {
-  input: "bg-white/[0.03] border-white/10 text-white placeholder:text-zinc-600 focus:border-primary/50 transition-all h-14 w-full rounded-xl",
-  label: "text-[9px] tracking-[0.3em] text-zinc-500 uppercase mb-2 block font-black",
-  container: "h-14 bg-white/[0.03] border border-white/10 rounded-xl px-4 flex items-center w-full focus-within:border-primary/50 transition-all"
+  input: "bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-primary/50 transition-all h-12 w-full",
+  label: "text-[10px] tracking-[0.2em] text-muted-foreground uppercase mb-1.5 block font-bold",
+  container: "h-12 bg-white/5 border border-white/10 rounded-md px-3 flex items-center w-full focus-within:border-primary/50 transition-all"
 };
 
 export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }: CardPaymentFormProps) {
@@ -32,11 +32,13 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // States for dynamic data
   const [identificationTypes, setIdentificationTypes] = useState<any[]>([]);
   const [installments, setInstallments] = useState<any[]>([]);
   const [issuers, setIssuers] = useState<any[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState("");
   
+  // Form fields
   const [formData, setFormData] = useState({
     cardholderName: "",
     identificationType: "CPF",
@@ -45,6 +47,7 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
     installments: "1"
   });
 
+  // Secure field instances
   const fieldsRef = useRef<{
     cardNumber?: any;
     expirationDate?: any;
@@ -71,23 +74,34 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
       });
       mpRef.current = mp;
 
+      // Create secure fields
       const fields = mp.fields();
       
       fieldsRef.current.cardNumber = fields.create('cardNumber', {
         placeholder: "0000 0000 0000 0000",
-        style: { color: "#ffffff", placeholder: { color: "#444444" } }
+        style: {
+          color: "#ffffff",
+          placeholder: { color: "#555555" }
+        }
       }).mount('form-checkout__cardNumber');
 
       fieldsRef.current.expirationDate = fields.create('expirationDate', {
         placeholder: "MM/AA",
-        style: { color: "#ffffff", placeholder: { color: "#444444" } }
+        style: {
+          color: "#ffffff",
+          placeholder: { color: "#555555" }
+        }
       }).mount('form-checkout__expirationDate');
 
       fieldsRef.current.securityCode = fields.create('securityCode', {
         placeholder: "CVV",
-        style: { color: "#ffffff", placeholder: { color: "#444444" } }
+        style: {
+          color: "#ffffff",
+          placeholder: { color: "#555555" }
+        }
       }).mount('form-checkout__securityCode');
 
+      // BIN Change listener
       fieldsRef.current.cardNumber.on('binChange', async (data: any) => {
         const { bin } = data;
         if (bin) {
@@ -95,13 +109,17 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
             const { results } = await mp.getPaymentMethods({ bin });
             const method = results[0];
             setPaymentMethodId(method.id);
+            
+            // Update fields settings (validations)
             fieldsRef.current.cardNumber.update({ settings: method.settings[0].card_number });
             fieldsRef.current.securityCode.update({ settings: method.settings[0].security_code });
 
+            // Fetch Issuers
             const issuersList = await mp.getIssuers({ paymentMethodId: method.id, bin });
             setIssuers(issuersList);
             if (issuersList.length > 0) setFormData(prev => ({ ...prev, issuer: issuersList[0].id }));
 
+            // Fetch Installments
             const installmentsData = await mp.getInstallments({
               amount: String(amount),
               bin,
@@ -109,16 +127,24 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
             });
             setInstallments(installmentsData[0].payer_costs);
           } catch (e) {
-            console.error(e);
+            console.error("Error on bin change:", e);
           }
         }
       });
 
-      mp.getIdentificationTypes().then((types: any) => setIdentificationTypes(types));
+      // Identification Types
+      mp.getIdentificationTypes().then((types: any) => {
+        setIdentificationTypes(types);
+      });
+
       setIsLoading(false);
     };
 
     initMP();
+
+    return () => {
+      // Cleanup? MercadoPago V2 fields don't have a direct unmount but we should be careful
+    };
   }, [amount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,19 +155,25 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
     const mp = mpRef.current;
 
     try {
+      // Create Token
       const tokenResult = await mp.fields.createCardToken({
         cardholderName: formData.cardholderName,
         identificationType: formData.identificationType,
         identificationNumber: formData.identificationNumber,
       });
 
-      if (tokenResult.error) throw new Error(tokenResult.error.message || "Erro no cartão");
+      if (tokenResult.error) {
+        throw new Error(tokenResult.error.message || "Erro ao validar cartão");
+      }
 
+      const token = tokenResult.id;
+
+      // Process Payment via Edge Function
       const { data, error } = await supabase.functions.invoke('process-payment', {
         body: {
           orderId,
           paymentMethodId,
-          token: tokenResult.id,
+          token,
           installments: formData.installments,
           payerEmail: email,
           amount
@@ -149,14 +181,17 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
       });
 
       if (error) throw error;
-      if (data.status === 'processed' || data.status === 'approved' || data.status === 'authorized') {
-        toast.success("Pagamento aprovado!");
+
+      if (data.status === 'processed' || data.status === 'approved' || data.status === 'action_required') {
+        toast.success("Pagamento processado!");
         onSuccess();
       } else {
-        toast.error("Pagamento recusado.");
+        toast.error("O pagamento foi recusado. Tente outro cartão.");
       }
+
     } catch (err: any) {
-      toast.error(err.message || "Falha ao processar");
+      console.error(err);
+      toast.error(err.message || "Falha ao processar pagamento");
     } finally {
       setIsSubmitting(false);
     }
@@ -164,160 +199,181 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-8 pb-32 max-w-lg mx-auto w-full"
+      className="space-y-8 mt-8 pb-32"
     >
-      {/* Visual Card - Cyberpunk Street Style */}
-      <div className="relative w-full aspect-[1.586/1] group perspective-1000">
-        <div className="absolute inset-0 bg-neutral-900 rounded-[24px] shadow-2xl overflow-hidden border border-white/10 group-hover:border-primary/40 transition-all duration-700">
-          <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <CreditCard className="text-primary" size={20} />
+          <h3 className="font-display text-sm uppercase tracking-widest">Cartão de Crédito</h3>
+        </div>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[9px] text-primary font-bold uppercase tracking-tighter">
+          <ShieldCheck size={10} /> PCI Certified
+        </div>
+      </div>
+
+      {/* Visual Card Preview */}
+      <div className="relative w-full aspect-[1.586/1] max-w-sm mx-auto group">
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-black rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
           
-          <div className="p-6 md:p-8 h-full flex flex-col justify-between relative z-10">
+          <div className="p-8 h-full flex flex-col justify-between relative z-10">
             <div className="flex justify-between items-start">
-              <div className="flex flex-col gap-1">
-                <span className="text-[7px] md:text-[8px] uppercase tracking-[0.4em] font-black text-primary drop-shadow-[0_0_10px_rgba(139,255,0,0.6)]">VOID SECURE PAY</span>
-                <div className="w-12 h-9 bg-gradient-to-br from-zinc-700 to-zinc-900 rounded-lg border border-white/5 shadow-inner flex items-center justify-center">
-                   <div className="w-8 h-px bg-white/20" />
-                </div>
-              </div>
+              <div className="w-12 h-10 bg-gradient-to-br from-amber-200/20 to-amber-500/20 rounded-lg border border-amber-500/20 shadow-inner" />
               {paymentMethodId ? (
-                <div className="text-white font-black italic text-xl md:text-2xl uppercase tracking-tighter skew-x-[-15deg] drop-shadow-lg">{paymentMethodId}</div>
+                <div className="text-white font-bold italic text-lg uppercase tracking-tighter">{paymentMethodId}</div>
               ) : (
-                <div className="w-14 h-7 bg-white/5 rounded-full animate-pulse" />
+                <div className="w-12 h-8 bg-white/5 rounded animate-pulse" />
               )}
             </div>
 
             <div className="space-y-6">
-              <div className="text-xl md:text-3xl font-mono tracking-[0.2em] text-white flex justify-between tabular-nums">
-                <span>{paymentMethodId ? "****" : "••••"}</span>
-                <span>****</span>
-                <span>****</span>
-                <span>****</span>
+              <div className="text-xl md:text-2xl font-mono tracking-[0.2em] text-white/90">
+                {paymentMethodId ? "**** **** **** ****" : "•••• •••• •••• ••••"}
               </div>
               
               <div className="flex justify-between items-end">
                 <div className="space-y-1">
-                  <div className="text-[7px] text-zinc-500 uppercase tracking-widest font-bold">Holder Name</div>
-                  <div className="text-[10px] md:text-xs uppercase tracking-[0.15em] font-black truncate max-w-[170px] text-white">
-                    {formData.cardholderName || "VOID MEMBER"}
+                  <div className="text-[7px] text-white/30 uppercase tracking-widest font-bold">Card Holder</div>
+                  <div className="text-xs uppercase tracking-widest font-bold truncate max-w-[180px]">
+                    {formData.cardholderName || "NOME DO TITULAR"}
                   </div>
                 </div>
                 <div className="space-y-1 text-right">
-                  <div className="text-[7px] text-zinc-500 uppercase tracking-widest font-bold">Expiry</div>
-                  <div className="text-[10px] md:text-xs font-mono text-white">MM/AA</div>
+                  <div className="text-[7px] text-white/30 uppercase tracking-widest font-bold">Expires</div>
+                  <div className="text-xs font-mono">MM/AA</div>
                 </div>
               </div>
             </div>
           </div>
-          
-          {/* Street Accent */}
-          <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/10 blur-[60px] rounded-full translate-x-1/2 translate-y-1/2" />
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5 bg-zinc-900/40 backdrop-blur-2xl p-6 md:p-10 rounded-[32px] border border-white/5 shadow-2xl relative overflow-hidden group">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-display text-[10px] uppercase tracking-[0.4em] text-white/50">Card Checkout</h3>
-          <ShieldCheck className="text-primary/50" size={16} />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Card Number Container */}
+        <div className="space-y-1.5">
+          <label className={STYLES.label}>Número do Cartão</label>
+          <div id="form-checkout__cardNumber" className={STYLES.container}></div>
         </div>
 
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <label className={STYLES.label}>Card Number</label>
-            <div id="form-checkout__cardNumber" className={STYLES.container}></div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className={STYLES.label}>Data de Validade</label>
+            <div id="form-checkout__expirationDate" className={STYLES.container}></div>
           </div>
+          <div className="space-y-1.5">
+            <label className={STYLES.label}>Código CVV</label>
+            <div id="form-checkout__securityCode" className={STYLES.container}></div>
+          </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className={STYLES.label}>Expiry Date</label>
-              <div id="form-checkout__expirationDate" className={STYLES.container}></div>
-            </div>
-            <div className="space-y-2">
-              <label className={STYLES.label}>Security Code</label>
-              <div id="form-checkout__securityCode" className={STYLES.container}></div>
+        <div className="space-y-1.5">
+          <label className={STYLES.label}>Nome do Titular</label>
+          <Input 
+            placeholder="Como está gravado no cartão"
+            value={formData.cardholderName}
+            onChange={e => setFormData(prev => ({ ...prev, cardholderName: e.target.value }))}
+            className={STYLES.input}
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className={STYLES.label}>Tipo de Documento</label>
+            <div className="relative">
+              <select 
+                value={formData.identificationType}
+                onChange={e => setFormData(prev => ({ ...prev, identificationType: e.target.value }))}
+                className={`${STYLES.input} appearance-none px-3`}
+              >
+                {identificationTypes.map(type => (
+                  <option key={type.id} value={type.id} className="bg-[#0a0a0a]">{type.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
             </div>
           </div>
-
-          <div className="space-y-2">
-            <label className={STYLES.label}>Cardholder Name</label>
+          <div className="space-y-1.5">
+            <label className={STYLES.label}>Número do Documento</label>
             <Input 
-              placeholder="AS WRITTEN ON CARD"
-              value={formData.cardholderName}
-              onChange={e => setFormData(prev => ({ ...prev, cardholderName: e.target.value.toUpperCase() }))}
-              className={`${STYLES.input} uppercase font-bold text-xs tracking-widest`}
+              placeholder="Apenas números"
+              value={formData.identificationNumber}
+              onChange={e => setFormData(prev => ({ ...prev, identificationNumber: e.target.value }))}
+              className={STYLES.input}
               required
             />
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className={STYLES.label}>ID Type</label>
-              <div className="relative">
-                <select 
-                  value={formData.identificationType}
-                  onChange={e => setFormData(prev => ({ ...prev, identificationType: e.target.value }))}
-                  className={`${STYLES.input} appearance-none bg-zinc-900 border-white/5 px-4 text-xs font-bold`}
-                >
-                  {identificationTypes.map(type => (
-                    <option key={type.id} value={type.id}>{type.name}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className={STYLES.label}>ID Number</label>
-              <Input 
-                placeholder="NUMBERS ONLY"
-                value={formData.identificationNumber}
-                onChange={e => setFormData(prev => ({ ...prev, identificationNumber: e.target.value }))}
-                className={STYLES.input}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className={STYLES.label}>Installments</label>
+        {issuers.length > 1 && (
+          <div className="space-y-1.5">
+            <label className={STYLES.label}>Banco Emissor</label>
             <div className="relative">
               <select 
-                value={formData.installments}
-                onChange={e => setFormData(prev => ({ ...prev, installments: e.target.value }))}
-                className={`${STYLES.input} appearance-none bg-zinc-900 border-white/5 px-4 text-xs font-bold ${installments.length === 0 ? 'text-zinc-600' : 'text-primary'}`}
-                disabled={installments.length === 0}
+                value={formData.issuer}
+                onChange={e => setFormData(prev => ({ ...prev, issuer: e.target.value }))}
+                className={`${STYLES.input} appearance-none px-3`}
               >
-                {installments.length === 0 ? (
-                  <option value="1">Enter card for options...</option>
-                ) : (
-                  installments.map(inst => (
-                    <option key={inst.installments} value={inst.installments}>
-                      {inst.recommended_message}
-                    </option>
-                  ))
-                )}
+                {issuers.map(issuer => (
+                  <option key={issuer.id} value={issuer.id} className="bg-[#0a0a0a]">{issuer.name}</option>
+                ))}
               </select>
-              <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-primary/50" />
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
             </div>
+          </div>
+        )}
+
+        <div className="space-y-1.5">
+          <label className={STYLES.label}>Parcelamento</label>
+          <div className="relative">
+            <select 
+              value={formData.installments}
+              onChange={e => setFormData(prev => ({ ...prev, installments: e.target.value }))}
+              className={`${STYLES.input} appearance-none px-3`}
+              disabled={installments.length === 0}
+            >
+              {installments.length === 0 ? (
+                <option value="1">Digite o cartão para ver parcelas</option>
+              ) : (
+                installments.map(inst => (
+                  <option key={inst.installments} value={inst.installments} className="bg-[#0a0a0a]">
+                    {inst.recommended_message}
+                  </option>
+                ))
+              )}
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
           </div>
         </div>
 
-        <div className="pt-6 space-y-4">
+        <div className="pt-4 space-y-4">
           <Button 
             type="submit"
             disabled={isSubmitting || isLoading}
-            className="w-full h-16 bg-white text-black font-black tracking-[0.3em] font-display hover:bg-primary transition-all duration-500 rounded-2xl text-[11px]"
+            className="w-full h-14 bg-primary text-black font-display tracking-[0.2em] font-bold hover:bg-primary/90 transition-all text-[11px] group"
           >
-            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : "EXECUTE PAYMENT"}
+            {isSubmitting ? (
+              <Loader2 className="animate-spin mr-2" size={18} />
+            ) : (
+              <>CONFIRMAR PAGAMENTO DE {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)}</>
+            )}
           </Button>
           
-          <button type="button" onClick={onCancel} className="w-full text-[8px] text-zinc-600 uppercase tracking-[0.4em] font-black hover:text-white transition-colors">
-            GO BACK TO SELECTION
+          <button 
+            type="button"
+            onClick={onCancel}
+            className="w-full text-[10px] text-muted-foreground uppercase tracking-widest font-bold hover:text-white transition-colors"
+          >
+            Voltar para opções
           </button>
         </div>
-        
-        {/* Glow effect on hover */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+        <div className="flex items-center justify-center gap-2 pt-4 opacity-50">
+          <ShieldCheck size={14} className="text-secondary" />
+          <span className="text-[9px] uppercase tracking-tighter">Ambiente Seguro & PCI Compliant</span>
+        </div>
       </form>
     </motion.div>
   );

@@ -135,10 +135,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   // --- ACTIONS ---
 
-  const addToCart = async (product: Product, sizeInput: string, colorInput: string) => {
-    const size = sizeInput || "Padrão";
-    const color = colorInput || "Padrão";
-    const newItemId = `${product.id}-${size}-${color}`;
+  const addToCart = async (product: Product, size: string, color: string) => {
+    const displaySize = size || "Padrão";
+    const displayColor = color || "Padrão";
+    const newItemId = `${product.id}-${displaySize}-${displayColor}`;
     
     // 1. Optimistic Update
     setItems((prev) => {
@@ -146,30 +146,38 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (existing) {
         return prev.map(i => i.id === newItemId ? { ...i, quantity: Math.min(i.quantity + 1, product.stock_quantity) } : i);
       }
-      return [...prev, { id: newItemId, product, quantity: 1, size, color }];
+      return [...prev, { id: newItemId, product, quantity: 1, size: displaySize, color: displayColor }];
     });
 
     // 2. Background Sync
     if (user) {
       setIsSyncing(true);
+      
+      const sizeVal = (size === "Padrão" || !size) ? null : size;
+      const colorVal = (color === "Padrão" || !color) ? null : color;
+
       const { data: existing } = await supabase
         .from("carts")
         .select("quantity")
-        .match({ user_id: user.id, product_id: product.id, size, color })
+        .match({ 
+          user_id: user.id, 
+          product_id: product.id, 
+          size: sizeVal, 
+          color: colorVal 
+        })
         .maybeSingle();
 
       const newQty = (existing?.quantity || 0) + 1;
       const { error } = await supabase.from("carts").upsert({
         user_id: user.id,
         product_id: product.id,
-        size: size === "Padrão" ? null : size,
-        color: color === "Padrão" ? null : color,
+        size: sizeVal,
+        color: colorVal,
         quantity: Math.min(newQty, product.stock_quantity)
-      }, { onConflict: 'user_id,product_id,size,color' });
-      
+      });
       if (error) {
         console.error("Add error", error);
-        toast.error("Erro ao sincronizar carrinho");
+        toast.error("Erro ao adicionar no banco");
       }
       setIsSyncing(false);
     }
@@ -186,28 +194,26 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     // 2. Sync
     if (user) {
       setIsSyncing(true);
-      // We must match EXACTLY what's in the DB.
-      // If we used fallback "Padrão" in state, but DB has null, we must match null.
-      const matchCriteria: any = { 
-        user_id: user.id, 
-        product_id: item.product.id
-      };
       
-      // If the state says "Padrão", but it came from a null in DB, we should be careful.
-      // Better: when we fetch, we keep the original values if needed.
-      // For now, let's try matching both ways if first fails, or just using null as fallback for match.
-      matchCriteria.size = item.size === "Padrão" ? null : item.size;
-      matchCriteria.color = item.color === "Padrão" ? null : item.color;
+      const sizeVal = (item.size === "Padrão" || !item.size) ? null : item.size;
+      const colorVal = (item.color === "Padrão" || !item.color) ? null : item.color;
 
-      const { error } = await supabase
-        .from("carts")
-        .delete()
-        .match({ 
-          user_id: user.id, 
-          product_id: item.product.id,
-          size: item.size === "Padrão" ? null : item.size,
-          color: item.color === "Padrão" ? null : item.color
-        });
+      // To handle potential legacy "" values and null consistently
+      let query = supabase.from("carts").delete().eq("user_id", user.id).eq("product_id", item.product.id);
+      
+      if (sizeVal === null) {
+        query = query.or('size.is.null,size.eq.""');
+      } else {
+        query = query.eq('size', sizeVal);
+      }
+      
+      if (colorVal === null) {
+        query = query.or('color.is.null,color.eq.""');
+      } else {
+        query = query.eq('color', colorVal);
+      }
+
+      const { error } = await query;
 
       if (error) {
         console.error("Delete error", error);
@@ -233,22 +239,24 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     // 2. Sync
     if (user) {
       setIsSyncing(true);
-      const matchCriteria: any = { 
-        user_id: user.id, 
-        product_id: item.product.id
-      };
-      matchCriteria.size = item.size === "Padrão" ? null : item.size;
-      matchCriteria.color = item.color === "Padrão" ? null : item.color;
+      const sizeVal = (item.size === "Padrão" || !item.size) ? null : item.size;
+      const colorVal = (item.color === "Padrão" || !item.color) ? null : item.color;
 
-      const { error } = await supabase
-        .from("carts")
-        .update({ quantity })
-        .match({ 
-          user_id: user.id, 
-          product_id: item.product.id,
-          size: item.size === "Padrão" ? null : item.size,
-          color: item.color === "Padrão" ? null : item.color
-        });
+      let query = supabase.from("carts").update({ quantity }).eq("user_id", user.id).eq("product_id", item.product.id);
+
+      if (sizeVal === null) {
+        query = query.or('size.is.null,size.eq.""');
+      } else {
+        query = query.eq('size', sizeVal);
+      }
+      
+      if (colorVal === null) {
+        query = query.or('color.is.null,color.eq.""');
+      } else {
+        query = query.eq('color', colorVal);
+      }
+
+      const { error } = await query;
 
       if (error) {
         console.error("Update error", error);
