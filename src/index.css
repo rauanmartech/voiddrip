@@ -320,3 +320,14 @@
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
+
+/* Mercado Pago Secure Fields Fixes */
+[id^="form-checkout__"] {
+  height: 48px;
+  width: 100%;
+}
+
+[id^="form-checkout__"] iframe {
+  height: 100% !important;
+  width: 100% !important;
+}

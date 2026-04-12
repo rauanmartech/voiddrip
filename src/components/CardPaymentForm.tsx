@@ -24,7 +24,7 @@ interface CardPaymentFormProps {
 const STYLES = {
   input: "bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-primary/50 transition-all h-12 w-full",
   label: "text-[10px] tracking-[0.2em] text-muted-foreground uppercase mb-1.5 block font-bold",
-  container: "h-12 bg-white/5 border border-white/10 rounded-md px-3 flex items-center w-full focus-within:border-primary/50 transition-all"
+  container: "min-h-[48px] bg-white/5 border border-white/10 rounded-md px-3 flex items-center w-full focus-within:border-primary/50 transition-all relative"
 };
 
 export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }: CardPaymentFormProps) {
@@ -49,6 +49,7 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
 
   // Secure field instances
   const fieldsRef = useRef<{
+    instance?: any;
     cardNumber?: any;
     expirationDate?: any;
     securityCode?: any;
@@ -76,6 +77,7 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
 
       // Create secure fields
       const fields = mp.fields();
+      fieldsRef.current.instance = fields;
       
       fieldsRef.current.cardNumber = fields.create('cardNumber', {
         placeholder: "0000 0000 0000 0000",
@@ -83,7 +85,8 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
           color: "#ffffff",
           placeholder: { color: "#555555" }
         }
-      }).mount('form-checkout__cardNumber');
+      });
+      fieldsRef.current.cardNumber.mount('form-checkout__cardNumber');
 
       fieldsRef.current.expirationDate = fields.create('expirationDate', {
         placeholder: "MM/AA",
@@ -91,7 +94,8 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
           color: "#ffffff",
           placeholder: { color: "#555555" }
         }
-      }).mount('form-checkout__expirationDate');
+      });
+      fieldsRef.current.expirationDate.mount('form-checkout__expirationDate');
 
       fieldsRef.current.securityCode = fields.create('securityCode', {
         placeholder: "CVV",
@@ -99,7 +103,8 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
           color: "#ffffff",
           placeholder: { color: "#555555" }
         }
-      }).mount('form-checkout__securityCode');
+      });
+      fieldsRef.current.securityCode.mount('form-checkout__securityCode');
 
       // BIN Change listener
       fieldsRef.current.cardNumber.on('binChange', async (data: any) => {
@@ -143,7 +148,16 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
     initMP();
 
     return () => {
-      // Cleanup? MercadoPago V2 fields don't have a direct unmount but we should be careful
+      // Cleanup to prevent multiple mounts on same elements
+      if (fieldsRef.current.cardNumber) {
+        try {
+          fieldsRef.current.cardNumber.unmount();
+          fieldsRef.current.expirationDate.unmount();
+          fieldsRef.current.securityCode.unmount();
+        } catch (e) {
+          console.warn("Error unmounting MP fields:", e);
+        }
+      }
     };
   }, [amount]);
 
@@ -155,8 +169,12 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
     const mp = mpRef.current;
 
     try {
-      // Create Token
-      const tokenResult = await mp.fields.createCardToken({
+      if (!fieldsRef.current.instance) {
+        throw new Error("Sistema de pagamento ainda não inicializado. Aguarde um momento.");
+      }
+
+      // Create Token using the fields instance
+      const tokenResult = await fieldsRef.current.instance.createCardToken({
         cardholderName: formData.cardholderName,
         identificationType: formData.identificationType,
         identificationNumber: formData.identificationNumber,
