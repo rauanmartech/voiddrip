@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, Lock, MapPin, Truck, Check, Package, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, User as UserIcon, ShieldCheck, Mail, Smartphone, Star, CreditCard, Clock, Banknote, DollarSign } from "lucide-react";
+import { ChevronRight, Lock, MapPin, Truck, Check, Package, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, User as UserIcon, ShieldCheck, Mail, Smartphone, Star, CreditCard, Clock, Banknote, DollarSign, Ticket } from "lucide-react";
 import voidLogo from "../assets/voiddrip.jpeg";
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,12 @@ export default function Checkout() {
   const [mpPreferenceId, setMpPreferenceId] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [paymentStep, setPaymentStep] = useState<"choice" | "card" | "pix">("choice");
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState("");
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   // Lock body scroll when payment modal is open to prevent coordinate mismatch on iframes
   useEffect(() => {
@@ -210,7 +216,7 @@ export default function Checkout() {
 
   const handleFinalizeOrder = async () => {
     if (items.length === 0) return;
-    
+
     setIsLoading(true);
     try {
       // 1. Create Order
@@ -218,11 +224,13 @@ export default function Checkout() {
         .from("orders")
         .insert({
           user_id: user?.id || null,
-          total_amount: cartTotal,
+          total_amount: finalTotal,
           status: "pending",
           is_guest: !user,
           full_name: buyerData.fullName,
-          email: buyerData.email
+          email: buyerData.email,
+          coupon_code: appliedCoupon?.code || null,
+          discount_amount: appliedCoupon ? cartTotal - finalTotal : null
         })
         .select()
         .single();
@@ -250,13 +258,28 @@ export default function Checkout() {
         street: address.street,
         number: address.number,
         complement: address.complement,
-        neighborhood: "Centro", 
+        neighborhood: "Centro",
         zip_code: address.zipCode,
         city: address.city,
         state: address.state,
         phone: address.phone
       });
       if (addrError) throw addrError;
+
+      // 4. Register coupon redemption if coupon was applied
+      if (appliedCoupon) {
+        const userIdentifier = user?.id || buyerData.email;
+        const { error: redemptionError } = await supabase.from("coupon_redemptions").insert({
+          coupon_id: appliedCoupon.id,
+          user_identifier: userIdentifier,
+          order_id: order.id,
+          used_at: new Date().toISOString()
+        });
+        if (redemptionError) {
+          console.error("Error registering coupon redemption:", redemptionError);
+          // Don't fail the order if coupon redemption fails, but log it
+        }
+      }
 
       setOrderId(order.id);
       toast.success("Pedido gerado com sucesso!");
@@ -274,6 +297,88 @@ export default function Checkout() {
     date.setDate(date.getDate() + 4);
     return date.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
   }, []);
+
+  // Coupon validation and application
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Digite um código de cupom");
+      return;
+    }
+
+    setValidatingCoupon(true);
+    setCouponError("");
+
+    try {
+      // Fetch coupon by code
+      const { data: coupon, error: couponError } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", couponCode.toUpperCase())
+        .single();
+
+      if (couponError || !coupon) {
+        setCouponError("Cupom inválido");
+        setValidatingCoupon(false);
+        return;
+      }
+
+      // Check if coupon is active
+      if (!coupon.active) {
+        setCouponError("Este cupom não está ativo");
+        setValidatingCoupon(false);
+        return;
+      }
+
+      // Check if coupon is expired
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+        setCouponError("Este cupom expirou");
+        setValidatingCoupon(false);
+        return;
+      }
+
+      // Check if user already used this coupon
+      const userIdentifier = user?.id || buyerData.email;
+      const { data: existingRedemption, error: redemptionError } = await supabase
+        .from("coupon_redemptions")
+        .select("*")
+        .eq("coupon_id", coupon.id)
+        .eq("user_identifier", userIdentifier)
+        .maybeSingle();
+
+      if (existingRedemption) {
+        setCouponError("Você já utilizou este cupom");
+        setValidatingCoupon(false);
+        return;
+      }
+
+      // Coupon is valid, apply it
+      setAppliedCoupon(coupon);
+      toast.success(`Cupom ${coupon.code} aplicado com sucesso!`);
+    } catch (error: any) {
+      console.error("Error validating coupon:", error);
+      setCouponError("Erro ao validar cupom");
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+    toast.info("Cupom removido");
+  };
+
+  // Calculate final total with discount
+  const finalTotal = useMemo(() => {
+    if (!appliedCoupon) return cartTotal;
+
+    if (appliedCoupon.discount_type === "percentage") {
+      return cartTotal * (1 - appliedCoupon.discount_value / 100);
+    } else {
+      return Math.max(0, cartTotal - appliedCoupon.discount_value);
+    }
+  }, [cartTotal, appliedCoupon]);
 
   const progress = {
     identification: 10,
@@ -657,8 +762,15 @@ export default function Checkout() {
                         <div className="space-y-2">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Valor total</p>
                           <p className="text-4xl font-display text-white tracking-tighter">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalTotal)}
                           </p>
+                          {appliedCoupon && (
+                            <p className="text-[8px] text-primary tracking-widest">
+                              {appliedCoupon.discount_type === "percentage"
+                                ? `${appliedCoupon.discount_value}% OFF aplicado`
+                                : `R$ ${appliedCoupon.discount_value} OFF aplicado`}
+                            </p>
+                          )}
                           
                           {/* Payment Options Dimension Icons */}
                           <div className="flex items-center gap-3 pt-2 opacity-40">
@@ -863,11 +975,66 @@ export default function Checkout() {
                    ))}
                 </div>
 
+                {/* Coupon Input */}
+                <div className="space-y-3 pt-6 border-t border-white/5">
+                  {!appliedCoupon ? (
+                    <div className="space-y-2">
+                      <label className="text-[9px] tracking-[0.2em] text-muted-foreground uppercase">Cupom de Desconto</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          placeholder="CÓDIGO"
+                          className="flex-1 bg-black/40 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors uppercase"
+                          onKeyPress={(e) => e.key === "Enter" && handleApplyCoupon()}
+                        />
+                        <button
+                          onClick={handleApplyCoupon}
+                          disabled={validatingCoupon}
+                          className="px-6 py-3 bg-white text-black text-[10px] font-bold tracking-widest uppercase hover:bg-primary transition-colors disabled:opacity-50"
+                        >
+                          {validatingCoupon ? "..." : "APLICAR"}
+                        </button>
+                      </div>
+                      {couponError && (
+                        <p className="text-[8px] text-red-400 tracking-widest">{couponError}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-none">
+                      <div className="flex items-center gap-2">
+                        <Ticket size={16} className="text-primary" />
+                        <div>
+                          <span className="text-[10px] font-bold tracking-widest text-primary">{appliedCoupon.code}</span>
+                          <span className="text-[8px] text-muted-foreground ml-2">
+                            {appliedCoupon.discount_type === "percentage"
+                              ? `${appliedCoupon.discount_value}% OFF`
+                              : `R$ ${appliedCoupon.discount_value} OFF`}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="text-[8px] text-muted-foreground hover:text-red-400 transition-colors tracking-widest"
+                      >
+                        REMOVER
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-3 pt-6 border-t border-white/5">
                    <div className="flex justify-between text-[10px] tracking-widest text-muted-foreground uppercase">
                       <span>Subtotal</span>
                       <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}</span>
                    </div>
+                   {appliedCoupon && (
+                     <div className="flex justify-between text-[10px] tracking-widest text-primary uppercase">
+                        <span>Desconto ({appliedCoupon.code})</span>
+                        <span>-{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal - finalTotal)}</span>
+                     </div>
+                   )}
                    <div className="flex justify-between text-[10px] tracking-widest text-primary uppercase font-bold">
                       <span>Frete</span>
                       <span>GRÁTIS</span>
@@ -875,7 +1042,7 @@ export default function Checkout() {
                    <div className="flex justify-between items-end pt-4">
                       <span className="font-display text-sm tracking-widest">TOTAL</span>
                       <span className="font-display text-2xl tracking-wider text-white">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalTotal)}
                       </span>
                    </div>
                 </div>

@@ -27,6 +27,7 @@ const Pending = lazy(() => import("./pages/Pending.tsx"));
 const Orders = lazy(() => import("./pages/Orders.tsx"));
 const VibeSurvey = lazy(() => import("./pages/VibeSurvey.tsx"));
 const MyCoupons = lazy(() => import("./pages/MyCoupons.tsx"));
+const AdminCoupons = lazy(() => import("./pages/AdminCoupons.tsx"));
 
 
 
@@ -76,6 +77,7 @@ const App = () => (
                   <Route path="/cupons" element={<MyCoupons />} />
                   <Route path="/vibes" element={<VibeSurvey />} />
                   <Route path="/admin" element={<AdminArea />} />
+                  <Route path="/admin/cupons" element={<AdminCoupons />} />
 
 
                   <Route path="*" element={<NotFound />} />

@@ -152,6 +152,17 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                     </Link>
                   </div>
 
+                  {user.email === "rauanrocha.martech@gmail.com" && (
+                    <Link
+                      to="/admin/cupons"
+                      onClick={onClose}
+                      className="flex items-center gap-4 px-4 py-3 border border-primary/20 bg-primary/5 rounded-none"
+                    >
+                      <Ticket size={16} className="text-primary" />
+                      <span className="font-display text-[9px] tracking-[0.2em] text-primary uppercase">Gerenciar Cupons</span>
+                    </Link>
+                  )}
+
                   
                   <button 
                     onClick={handleLogout}

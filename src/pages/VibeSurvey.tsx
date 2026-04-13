@@ -146,83 +146,84 @@ const VibeSurvey = () => {
                       <FormField
                         control={form.control}
                         name="vibe"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="grid grid-cols-1 gap-4"
-                              >
-                                {[
-                                  { 
-                                    id: "CÓDIGO DE MURO", 
-                                    desc: "grafite, rua, expressão",
-                                    renderTitle: () => (
-                                      <span className="relative inline-block">
-                                        <span className="relative z-10 animate-glitch-1 text-white">CÓDIGO DE MURO</span>
-                                        <span className="absolute top-0 left-0 -z-10 animate-glitch-2 text-cyan-500 opacity-50">CÓDIGO DE MURO</span>
-                                        <span className="absolute top-0 left-0 -z-20 animate-glitch-1 text-fuchsia-500 opacity-50 translate-x-[1px]">CÓDIGO DE MURO</span>
-                                      </span>
-                                    )
-                                  },
-                                  { 
-                                    id: "NAÇÃO EM CAMPO", 
-                                    desc: "futebol, pressão, Brasil",
-                                    renderTitle: () => (
-                                      <>
-                                        <span className="text-[#22c55e]">NAÇÃO </span>
-                                        <span className="text-[#facc15]">EM </span>
-                                        <span className="text-[#3b82f6]">CAMPO</span>
-                                      </>
-                                    )
-                                  },
-                                  { 
-                                    id: "RAIZ 031", 
-                                    desc: "Minas, origem, identidade",
-                                    renderTitle: () => (
-                                      <>
-                                        <span className="text-white">RAIZ </span>
-                                        <span className="text-[#ef4444]">031</span>
-                                      </>
-                                    )
-                                  },
-                                ].map((option) => (
-                                  <FormItem 
-                                    key={option.id}
-                                    className={`relative flex items-center space-x-3 space-y-0 rounded-none border p-6 transition-all duration-300 cursor-pointer ${
-                                      field.value === option.id 
-                                        ? "border-primary bg-primary/5 shadow-[0_0_20px_rgba(255,255,255,0.05)]" 
-                                        : "border-white/10 hover:border-white/30"
-                                    }`}
-                                    onClick={() => field.onChange(option.id)}
-                                  >
-                                    <FormControl>
+                        render={({ field }) => {
+                          const vibeOptions = [
+                            { 
+                              id: "CÓDIGO DE MURO", 
+                              desc: "grafite, rua, expressão",
+                              renderTitle: () => (
+                                <span className="relative inline-block">
+                                  <span className="relative z-10 animate-glitch-1 text-white">CÓDIGO DE MURO</span>
+                                  <span className="absolute top-0 left-0 -z-10 animate-glitch-2 text-cyan-500 opacity-50">CÓDIGO DE MURO</span>
+                                  <span className="absolute top-0 left-0 -z-20 animate-glitch-1 text-fuchsia-500 opacity-50 translate-x-[1px]">CÓDIGO DE MURO</span>
+                                </span>
+                              )
+                            },
+                            { 
+                              id: "NAÇÃO EM CAMPO", 
+                              desc: "futebol, pressão, Brasil",
+                              renderTitle: () => (
+                                <>
+                                  <span className="text-[#22c55e]">NAÇÃO </span>
+                                  <span className="text-[#facc15]">EM </span>
+                                  <span className="text-[#3b82f6]">CAMPO</span>
+                                </>
+                              )
+                            },
+                            { 
+                              id: "RAIZ 031", 
+                              desc: "Minas, origem, identidade",
+                              renderTitle: () => (
+                                <>
+                                  <span className="text-white">RAIZ </span>
+                                  <span className="text-[#ef4444]">031</span>
+                                </>
+                              )
+                            },
+                          ];
+                          return (
+                            <FormItem className="space-y-3">
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  className="grid grid-cols-1 gap-4"
+                                >
+                                  {vibeOptions.map((option) => (
+                                    <label 
+                                      key={option.id}
+                                      className={`relative flex items-center space-x-3 space-y-0 rounded-none border p-6 transition-all duration-300 cursor-pointer ${
+                                        field.value === option.id 
+                                          ? "border-primary bg-primary/5 shadow-[0_0_20px_rgba(255,255,255,0.05)]" 
+                                          : "border-white/10 hover:border-white/30"
+                                      }`}
+                                    >
                                       <RadioGroupItem value={option.id} className="sr-only" />
-                                    </FormControl>
-                                    <div className="flex-1">
-                                      <FormLabel className="font-display text-sm tracking-widest cursor-pointer block mb-1">
-                                        {option.renderTitle()}
-                                      </FormLabel>
-                                      <p className="text-[10px] text-muted-foreground italic uppercase">
-                                        ({option.desc})
-                                      </p>
-                                    </div>
-                                    {field.value === option.id && (
-                                      <motion.div layoutId="check-vibe">
-                                        <Check className="w-4 h-4 text-primary" />
-                                      </motion.div>
-                                    )}
-                                  </FormItem>
-                                ))}
-                              </RadioGroup>
-                            </FormControl>
-                            <FormDescription className="text-[10px] italic text-center text-muted-foreground pt-2">
-                              “Sem hype, só o que você realmente usaria.”
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                                      <div className="flex-1">
+                                        <FormLabel className="font-display text-sm tracking-widest cursor-pointer block mb-1">
+                                          {option.renderTitle()}
+                                        </FormLabel>
+                                        <p className="text-[10px] text-muted-foreground italic uppercase">
+                                          ({option.desc})
+                                        </p>
+                                      </div>
+                                      {field.value === option.id && (
+                                        <motion.div layoutId="check-vibe">
+                                          <Check className="w-4 h-4 text-primary" />
+                                        </motion.div>
+                                      )}
+                                    </label>
+                                  ))}
+                                </RadioGroup>
+                              </FormControl>
+                              <FormDescription className="text-[10px] italic text-center text-muted-foreground pt-2">
+                                "Sem hype, só o que você realmente usaria."
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }
+                        }
                       />
                     </div>
 
@@ -241,54 +242,34 @@ const VibeSurvey = () => {
                       <FormField
                         control={form.control}
                         name="items"
-                        render={() => (
-                          <FormItem>
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
                             <div className="grid grid-cols-1 gap-3">
                               {itemsOptions.map((item) => (
-                                <FormField
+                                <label
                                   key={item.id}
-                                  control={form.control}
-                                  name="items"
-                                  render={({ field }) => {
-                                    return (
-                                      <FormItem
-                                        key={item.id}
-                                        className={`flex flex-row items-center space-x-3 space-y-0 border p-4 transition-all duration-200 cursor-pointer ${
-                                          field.value?.includes(item.id)
-                                            ? "border-primary/50 bg-primary/5"
-                                            : "border-white/5 hover:bg-white/5"
-                                        }`}
-                                        onClick={() => {
-                                          const isChecked = field.value?.includes(item.id);
-                                          if (isChecked) {
-                                            field.onChange(field.value?.filter((v) => v !== item.id));
-                                          } else {
-                                            field.onChange([...(field.value || []), item.id]);
-                                          }
-                                        }}
-                                      >
-                                        <FormControl>
-                                          <Checkbox
-                                            checked={field.value?.includes(item.id)}
-                                            onCheckedChange={(checked) => {
-                                              return checked
-                                                ? field.onChange([...field.value, item.id])
-                                                : field.onChange(
-                                                    field.value?.filter(
-                                                      (value) => value !== item.id
-                                                    )
-                                                  )
-                                            }}
-                                            className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground pointer-events-none"
-                                          />
-                                        </FormControl>
-                                        <FormLabel className="text-[10px] font-medium tracking-widest uppercase cursor-pointer flex-grow py-1">
-                                          {item.label}
-                                        </FormLabel>
-                                      </FormItem>
-                                    )
-                                  }}
-                                />
+                                  className={`flex flex-row items-center space-x-3 space-y-0 border p-4 transition-all duration-200 cursor-pointer ${
+                                    field.value?.includes(item.id)
+                                      ? "border-primary/50 bg-primary/5"
+                                      : "border-white/5 hover:bg-white/5"
+                                  }`}
+                                >
+                                  <Checkbox
+                                    checked={field.value?.includes(item.id)}
+                                    onCheckedChange={(checked) => {
+                                      const currentValues = Array.isArray(field.value) ? field.value : [];
+                                      if (checked) {
+                                        field.onChange([...currentValues, item.id]);
+                                      } else {
+                                        field.onChange(currentValues.filter((v) => v !== item.id));
+                                      }
+                                    }}
+                                    className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                                  />
+                                  <FormLabel className="text-[10px] font-medium tracking-widest uppercase cursor-pointer flex-grow py-1">
+                                    {item.label}
+                                  </FormLabel>
+                                </label>
                               ))}
                             </div>
                             <FormMessage />
@@ -314,26 +295,23 @@ const VibeSurvey = () => {
                             <FormControl>
                               <RadioGroup
                                 onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value}
                                 className="flex flex-col gap-3"
                               >
                                 {decisionFactors.map((option) => (
-                                  <FormItem 
+                                  <label 
                                     key={option.id}
                                     className={`flex items-center space-x-4 space-y-0 border p-4 transition-all duration-200 cursor-pointer ${
                                       field.value === option.id 
                                         ? "border-primary/50 bg-primary/5" 
                                         : "border-white/5 hover:bg-white/5"
                                     }`}
-                                    onClick={() => field.onChange(option.id)}
                                   >
-                                    <FormControl>
-                                      <RadioGroupItem value={option.id} className="border-white/20 text-primary pointer-events-none" />
-                                    </FormControl>
+                                    <RadioGroupItem value={option.id} className="border-white/20 text-primary" />
                                     <FormLabel className="font-medium text-[10px] tracking-widest uppercase cursor-pointer flex-grow py-1 leading-relaxed">
                                       {option.label}
                                     </FormLabel>
-                                  </FormItem>
+                                  </label>
                                 ))}
                               </RadioGroup>
                             </FormControl>

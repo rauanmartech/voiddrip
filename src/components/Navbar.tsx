@@ -138,10 +138,16 @@ const Navbar = () => {
 
 
                         {user.email === "rauanrocha.martech@gmail.com" && (
-                          <Link to="/admin" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group border-y border-white/5">
-                            <LayoutDashboard size={14} className="text-primary/70 group-hover:text-primary transition-colors" />
-                            <span className="font-display text-[9px] tracking-[0.2em] text-primary uppercase">Painel Admin</span>
-                          </Link>
+                          <>
+                            <Link to="/admin" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group border-y border-white/5">
+                              <LayoutDashboard size={14} className="text-primary/70 group-hover:text-primary transition-colors" />
+                              <span className="font-display text-[9px] tracking-[0.2em] text-primary uppercase">Painel Admin</span>
+                            </Link>
+                            <Link to="/admin/cupons" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
+                              <Ticket size={14} className="text-primary/70 group-hover:text-primary transition-colors" />
+                              <span className="font-display text-[9px] tracking-[0.2em] text-primary uppercase">Gerenciar Cupons</span>
+                            </Link>
+                          </>
                         )}
 
                         <button 
@@ -196,16 +202,29 @@ const Navbar = () => {
 
           <div className="md:hidden flex items-center gap-6">
             {user ? (
-              <button 
-                onClick={() => setIsMobileMenuOpen(true)}
+              <Link
+                to="/perfil"
                 className="w-8 h-8 rounded-full border border-primary/20 bg-primary/5 flex items-center justify-center overflow-hidden"
+                aria-label="Abrir perfil"
               >
                 {user.user_metadata?.avatar_url ? (
-                  <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt="Profile"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback-mobile');
+                      if (fallback) fallback.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+
+                <div className={`avatar-fallback-mobile ${user.user_metadata?.avatar_url ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
                   <User size={16} className="text-primary" />
-                )}
-              </button>
+                </div>
+              </Link>
             ) : (
               <button 
                 onClick={() => setIsAuthModalOpen(true)}
