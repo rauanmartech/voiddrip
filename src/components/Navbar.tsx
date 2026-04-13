@@ -143,10 +143,6 @@ const Navbar = () => {
                               <LayoutDashboard size={14} className="text-primary/70 group-hover:text-primary transition-colors" />
                               <span className="font-display text-[9px] tracking-[0.2em] text-primary uppercase">Painel Admin</span>
                             </Link>
-                            <Link to="/admin/cupons" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
-                              <Ticket size={14} className="text-primary/70 group-hover:text-primary transition-colors" />
-                              <span className="font-display text-[9px] tracking-[0.2em] text-primary uppercase">Gerenciar Cupons</span>
-                            </Link>
                           </>
                         )}
 

@@ -21,7 +21,12 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Ticket,
+  MessageSquare,
+  Percent,
+  DollarSign,
+  Tag
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS as PRODUCT_KEYS } from "@/hooks/useProducts";
@@ -34,7 +39,7 @@ const ADMIN_EMAIL = "rauanrocha.martech@gmail.com";
 const AdminArea = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "products" | "list" | "orders" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "products" | "list" | "orders" | "settings" | "feedback" | "coupons">("overview");
   
   const { data: allOrders, isLoading: loadingOrders } = useAdminOrders();
 
@@ -62,6 +67,21 @@ const AdminArea = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
+  // Feedback and Coupons states
+  const [feedbackList, setFeedbackList] = useState<any[]>([]);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [couponsList, setCouponsList] = useState<any[]>([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const [showCouponForm, setShowCouponForm] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState<any>(null);
+
+  // Coupon form states
+  const [couponCode, setCouponCode] = useState("");
+  const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage");
+  const [discountValue, setDiscountValue] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
+  const [couponActive, setCouponActive] = useState(true);
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -75,15 +95,30 @@ const AdminArea = () => {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
       if (session?.user?.email === ADMIN_EMAIL) {
         fetchProducts();
+        if (activeTab === "overview") {
+          fetchFeedback();
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [activeTab]);
+
+  const fetchFeedback = async () => {
+    setLoadingFeedback(true);
+    const { data } = await supabase.from('pre_drop_feedback').select('*').order('created_at', { ascending: false });
+    if (data) setFeedbackList(data);
+    setLoadingFeedback(false);
+  };
+
+  const fetchCoupons = async () => {
+    setLoadingCoupons(true);
+    const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
+    if (data) setCouponsList(data);
+    setLoadingCoupons(false);
+  };
 
   const fetchProducts = async () => {
     setLoadingList(true);
@@ -229,6 +264,66 @@ const AdminArea = () => {
     }
   };
 
+  // Coupon management functions
+  const handleSaveCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const data = {
+        code: couponCode.toUpperCase(),
+        discount_type: discountType,
+        discount_value: parseFloat(discountValue),
+        expires_at: expiresAt || null,
+        active: couponActive,
+        created_by: session.user.email
+      };
+      let res;
+      if (editingCoupon) res = await supabase.from('coupons').update(data).eq('id', editingCoupon.id);
+      else res = await supabase.from('coupons').insert(data);
+      if (res.error) throw res.error;
+      toast.success(editingCoupon ? "Cupom atualizado" : "Cupom criado");
+      setShowCouponForm(false);
+      resetCouponForm();
+      fetchCoupons();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteCoupon = async (id: string) => {
+    if (!confirm("Excluir cupom?")) return;
+    const { error } = await supabase.from('coupons').delete().eq('id', id);
+    if (error) toast.error("Erro ao excluir");
+    else { toast.success("Cupom removido"); fetchCoupons(); }
+  };
+
+  const toggleCoupon = async (coupon: any) => {
+    const { error } = await supabase.from('coupons').update({ active: !coupon.active }).eq('id', coupon.id);
+    if (error) toast.error("Erro");
+    else fetchCoupons();
+  };
+
+  const resetCouponForm = () => {
+    setCouponCode("");
+    setDiscountType("percentage");
+    setDiscountValue("");
+    setExpiresAt("");
+    setCouponActive(true);
+    setEditingCoupon(null);
+  };
+
+  const openEditCoupon = (coupon: any) => {
+    setEditingCoupon(coupon);
+    setCouponCode(coupon.code);
+    setDiscountType(coupon.discount_type);
+    setDiscountValue(coupon.discount_value.toString());
+    setExpiresAt(coupon.expires_at ? coupon.expires_at.slice(0,16) : "");
+    setCouponActive(coupon.active);
+    setShowCouponForm(true);
+  };
+
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-y border-primary rounded-full animate-spin" /></div>;
 
   const isAdmin = session?.user?.email === ADMIN_EMAIL;
@@ -267,6 +362,8 @@ const AdminArea = () => {
             <nav className="flex flex-col gap-1">
               <SidebarItem icon={<LayoutDashboard size={16} />} label="VISÃO GERAL" active={activeTab === "overview"} onClick={() => setActiveTab("overview")} />
               <SidebarItem icon={<ShoppingBag size={16} />} label="VENDAS" active={activeTab === "orders"} onClick={() => setActiveTab("orders")} />
+              <SidebarItem icon={<Ticket size={16} />} label="CUPONS" active={activeTab === "coupons"} onClick={() => { setActiveTab("coupons"); fetchCoupons(); }} />
+              <SidebarItem icon={<MessageSquare size={16} />} label="FEEDBACK" active={activeTab === "feedback"} onClick={() => { setActiveTab("feedback"); fetchFeedback(); }} />
               <SidebarItem icon={<List size={16} />} label="ESTOQUE" active={activeTab === "list"} onClick={() => { setActiveTab("list"); fetchProducts(); }} />
               <SidebarItem icon={<PlusCircle size={16} />} label="NOVO PRODUTO" active={activeTab === "products"} onClick={openAddProduct} />
               <SidebarItem icon={<Settings size={16} />} label="CONTA" active={activeTab === "settings"} onClick={() => setActiveTab("settings")} />
@@ -415,6 +512,105 @@ const AdminArea = () => {
                     <button type="submit" className="btn-explore w-full py-4">ATUALIZAR SENHA</button>
                     {passMessage && <p className="text-[10px] mt-4 text-primary">{passMessage}</p>}
                   </form>
+                </motion.div>
+              )}
+
+              {activeTab === "feedback" && (
+                <motion.div key="fb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+                  <header><h2 className="text-2xl tracking-[0.4em] mb-2">FEEDBACK PRÉ-DROP</h2><p className="text-[10px] text-muted-foreground tracking-[0.2em]">RESULTADOS DA PESQUISA DE VIBE</p></header>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <StatCard icon={<MessageSquare className="text-primary"/>} label="TOTAL RESPOSTAS" value={feedbackList.length.toString()} />
+                    <StatCard 
+                      icon={<Star className="text-primary"/>} 
+                      label="VIBE DOMINANTE" 
+                      value={feedbackList.length > 0 ? Object.entries(feedbackList.reduce((acc: any, f) => { acc[f.vibe] = (acc[f.vibe] || 0) + 1; return acc; }, {})).sort((a: any, b: any) => b[1] - a[1])[0][0] : "N/A"} 
+                    />
+                    <StatCard 
+                      icon={<CheckCircle2 className="text-primary"/>} 
+                      label="ITENS MAIS DESEJADOS" 
+                      value={feedbackList.length > 0 ? Object.entries(feedbackList.flatMap(f => f.items).reduce((acc: any, i) => { acc[i] = (acc[i] || 0) + 1; return acc; }, {})).sort((a: any, b: any) => b[1] - a[1])[0][0]?.replace('_', ' ').toUpperCase() : "N/A"} 
+                    />
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-white/5 text-[10px] tracking-[0.3em] text-muted-foreground">
+                          <th className="py-4 px-2">DATA</th>
+                          <th className="py-4 px-2">VIBE</th>
+                          <th className="py-4 px-2">ITENS</th>
+                          <th className="py-4 px-2">FATOR DECISÃO</th>
+                          <th className="py-4 px-2">DESCRIÇÃO</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {feedbackList.map((f) => (
+                          <tr key={f.id} className="text-[9px] hover:bg-white/[0.02] items-start">
+                            <td className="py-4 px-2 text-muted-foreground">{new Date(f.created_at).toLocaleDateString()}</td>
+                            <td className="py-4 px-2 font-bold tracking-widest text-primary">{f.vibe}</td>
+                            <td className="py-4 px-2 max-w-xs"><div className="flex flex-wrap gap-1">{f.items.map((i: string) => <span key={i} className="px-1 bg-white/5 border border-white/10 uppercase">{i.replace('_', ' ')}</span>)}</div></td>
+                            <td className="py-4 px-2 uppercase">{f.decision_factor}</td>
+                            <td className="py-4 px-2 text-muted-foreground italic max-w-sm truncate" title={f.perfect_brand_description}>{f.perfect_brand_description || "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === "coupons" && (
+                <motion.div key="cp" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                  <header className="flex justify-between items-end">
+                    <div><h2 className="text-2xl tracking-[0.4em] mb-2">CUPONS</h2><p className="text-[10px] text-muted-foreground tracking-[0.2em]">GESTÃO DE DESCONTOS</p></div>
+                    <button onClick={() => { resetCouponForm(); setShowCouponForm(true); }} className="text-[10px] text-primary hover:underline"> + NOVO CUPOM</button>
+                  </header>
+
+                  {showCouponForm && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="p-6 border border-primary/20 bg-primary/5 space-y-4">
+                      <form onSubmit={handleSaveCoupon} className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] tracking-widest">
+                        <div className="flex flex-col gap-2"><label>CÓDIGO</label><input required value={couponCode} onChange={e=>setCouponCode(e.target.value)} className="bg-black/40 border border-white/10 px-3 py-2 uppercase"/></div>
+                        <div className="flex flex-col gap-2">
+                          <label>TIPO</label>
+                          <div className="flex gap-2">
+                            <button type="button" onClick={()=>setDiscountType("percentage")} className={`flex-1 py-2 border ${discountType === "percentage" ? "border-primary text-primary" : "border-white/10"}`}>%</button>
+                            <button type="button" onClick={()=>setDiscountType("fixed")} className={`flex-1 py-2 border ${discountType === "fixed" ? "border-primary text-primary" : "border-white/10"}`}>R$</button>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2"><label>VALOR</label><input type="number" step="0.01" required value={discountValue} onChange={e=>setDiscountValue(e.target.value)} className="bg-black/40 border border-white/10 px-3 py-2"/></div>
+                        <div className="flex flex-col gap-2"><label>EXPIRAÇÃO</label><input type="datetime-local" value={expiresAt} onChange={e=>setExpiresAt(e.target.value)} className="bg-black/40 border border-white/10 px-3 py-2"/></div>
+                        <div className="flex items-center gap-2 pt-4 px-2"><input type="checkbox" checked={couponActive} onChange={e=>setCouponActive(e.target.checked)} className="accent-primary"/> <span>ATIVO</span></div>
+                        <div className="md:col-span-2 flex gap-2 pt-2">
+                          <button type="submit" disabled={saving} className="btn-explore flex-1 py-3 text-[9px]">{saving ? "SALVANDO..." : "SALVAR CUPOM"}</button>
+                          <button type="button" onClick={() => setShowCouponForm(false)} className="px-4 border border-white/10 text-[9px]">CANCELAR</button>
+                        </div>
+                      </form>
+                    </motion.div>
+                  )}
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead><tr className="border-b border-white/5 text-[10px] tracking-[0.3em] text-muted-foreground"><th className="py-4 px-2">CÓDIGO</th><th className="py-4 px-2">VALOR</th><th className="py-4 px-2">EXPIRAÇÃO</th><th className="py-4 px-2">STATUS</th><th className="py-4 px-2 text-right">AÇÕES</th></tr></thead>
+                      <tbody className="divide-y divide-white/5">
+                        {couponsList.map(c => (
+                          <tr key={c.id} className="hover:bg-white/[0.02]">
+                            <td className="py-4 px-2 font-bold text-primary tracking-widest">{c.code}</td>
+                            <td className="py-4 px-2 text-[10px]">{c.discount_type === "percentage" ? `${c.discount_value}%` : `R$ ${c.discount_value}`}</td>
+                            <td className="py-4 px-2 text-[10px] text-muted-foreground">{c.expires_at ? new Date(c.expires_at).toLocaleDateString() : "INFINITO"}</td>
+                            <td className="py-4 px-2">
+                              <span className={`px-2 py-0.5 border text-[8px] ${c.active ? 'border-primary text-primary' : 'border-red-500 text-red-500'}`}>{c.active ? "ATIVO" : "INATIVO"}</span>
+                            </td>
+                            <td className="py-4 px-2 text-right space-x-1">
+                               <button onClick={() => toggleCoupon(c)} className="p-1 hover:text-primary transition-colors">{c.active ? <XCircle size={14}/> : <CheckCircle2 size={14}/>}</button>
+                               <button onClick={() => openEditCoupon(c)} className="p-1 hover:text-primary transition-colors"><Tag size={14}/></button>
+                               <button onClick={() => deleteCoupon(c.id)} className="p-1 hover:text-red-500 transition-colors"><Trash2 size={14}/></button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </motion.div>
               )}
 
