@@ -18,7 +18,9 @@ serve(async (req) => {
       token, 
       installments, 
       payerEmail,
-      amount
+      amount,
+      paymentType,
+      identification
     } = await req.json()
 
     // Initialize Supabase Admin Client
@@ -29,33 +31,31 @@ serve(async (req) => {
 
     const MP_ACCESS_TOKEN = Deno.env.get('MERCADO_PAGO_ACCESS_TOKEN')
     
-    // 1. Check if order exists and belongs to user (optional validation)
-    
     const isPix = paymentMethodId === 'pix'
     
-    // 2. CREATE ORDER IN MERCADO PAGO (Checkout API /v1/orders)
+    // CREATE ORDER IN MERCADO PAGO (Checkout API /v1/orders)
     const idempotencyKey = crypto.randomUUID()
     
     const mpOrderData = {
       type: "online",
       processing_mode: "automatic",
-      total_amount: String(amount.toFixed(2)),
+      total_amount: Number(amount).toFixed(2),
       external_reference: orderId,
       payer: {
         email: payerEmail,
-        // Optional identification for Pix
+        identification: identification, // Crucial for Brazilian operations
         ...(isPix && {
-          first_name: payerEmail.split('@')[0], // Fallback if name not passed
+          first_name: payerEmail.split('@')[0],
           last_name: "Void User"
         })
       },
       transactions: {
         payments: [
           {
-            amount: String(amount.toFixed(2)),
+            amount: Number(amount).toFixed(2),
             payment_method: {
               id: paymentMethodId,
-              type: isPix ? "bank_transfer" : "credit_card",
+              type: isPix ? "bank_transfer" : (paymentType || "credit_card"),
               ...(isPix ? {} : { token: token, installments: Number(installments) })
             },
             ...(isPix && { expiration_time: "PT7M" })
@@ -77,11 +77,14 @@ serve(async (req) => {
     })
 
     const result = await response.json()
-    console.log("MP Response:", JSON.stringify(result))
 
     if (!response.ok) {
+      console.error('MERCADO PAGO ERROR DETAIL:', JSON.stringify(result, null, 2))
       return new Response(
-        JSON.stringify({ error: result.message || "Erro ao processar pagamento" }), 
+        JSON.stringify({ 
+          error: result.message || "Erro ao processar pagamento",
+          details: result.cause || result.error_details || []
+        }), 
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

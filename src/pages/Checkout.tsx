@@ -41,6 +41,18 @@ export default function Checkout() {
   const [errors, setErrors] = useState<string[]>([]);
   const [paymentStep, setPaymentStep] = useState<"choice" | "card" | "pix">("choice");
 
+  // Lock body scroll when payment modal is open to prevent coordinate mismatch on iframes
+  useEffect(() => {
+    if (paymentStep === "card" || paymentStep === "pix") {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [paymentStep]);
+
   // Shake animation configuration
   const shakeAnimation = {
     shake: {
@@ -698,29 +710,33 @@ export default function Checkout() {
                                )}
 
                                {paymentStep === "card" && (
-                                 <div className="fixed inset-0 z-[100] bg-[#030303] overflow-y-auto px-6 py-12 md:p-20">
-                                   <div className="max-w-xl mx-auto">
-                                      <CardPaymentForm 
-                                        orderId={orderId}
-                                        amount={cartTotal}
-                                        email={buyerData.email}
-                                        onSuccess={() => setStep("success")}
-                                        onCancel={() => setPaymentStep("choice")}
-                                      />
+                                 <div className="fixed inset-0 z-[100] bg-[#030303] flex flex-col" style={{overscrollBehavior: 'contain'}}>
+                                   <div className="flex-1 overflow-y-auto">
+                                     <div className="max-w-xl mx-auto px-6 py-10">
+                                        <CardPaymentForm 
+                                          orderId={orderId}
+                                          amount={cartTotal}
+                                          email={buyerData.email}
+                                          onSuccess={() => setStep("success")}
+                                          onCancel={() => setPaymentStep("choice")}
+                                        />
+                                     </div>
                                    </div>
                                  </div>
                                )}
 
                                {paymentStep === "pix" && (
-                                 <div className="fixed inset-0 z-[100] bg-[#030303] overflow-y-auto px-6 py-12 md:p-20">
-                                   <div className="max-w-xl mx-auto">
-                                      <PixPayment 
-                                        orderId={orderId}
-                                        amount={cartTotal}
-                                        email={buyerData.email}
-                                        onSuccess={() => setStep("success")}
-                                        onCancel={() => setPaymentStep("choice")}
-                                      />
+                                 <div className="fixed inset-0 z-[100] bg-[#030303] flex flex-col" style={{overscrollBehavior: 'contain'}}>
+                                   <div className="flex-1 overflow-y-auto">
+                                     <div className="max-w-xl mx-auto px-6 py-10">
+                                        <PixPayment 
+                                          orderId={orderId}
+                                          amount={cartTotal}
+                                          email={buyerData.email}
+                                          onSuccess={() => setStep("success")}
+                                          onCancel={() => setPaymentStep("choice")}
+                                        />
+                                     </div>
                                    </div>
                                  </div>
                                )}

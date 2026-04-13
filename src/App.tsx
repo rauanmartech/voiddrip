@@ -25,6 +25,8 @@ const Success = lazy(() => import("./pages/Success.tsx"));
 const Failure = lazy(() => import("./pages/Failure.tsx"));
 const Pending = lazy(() => import("./pages/Pending.tsx"));
 const Orders = lazy(() => import("./pages/Orders.tsx"));
+const VibeSurvey = lazy(() => import("./pages/VibeSurvey.tsx"));
+
 
 // Minimal page loader
 const PageLoader = () => (
@@ -69,7 +71,9 @@ const App = () => (
                   <Route path="/failure" element={<Failure />} />
                   <Route path="/pending" element={<Pending />} />
                   <Route path="/pedidos" element={<Orders />} />
+                  <Route path="/vibes" element={<VibeSurvey />} />
                   <Route path="/admin" element={<AdminArea />} />
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
