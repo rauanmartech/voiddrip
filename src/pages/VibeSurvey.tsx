@@ -192,17 +192,17 @@ const VibeSurvey = () => {
                                   {vibeOptions.map((option) => (
                                     <label 
                                       key={option.id}
-                                      className={`relative flex items-center space-x-3 space-y-0 rounded-none border p-6 transition-all duration-300 cursor-pointer ${
+                                      className={`relative flex items-center space-x-3 space-y-0 rounded-none border p-6 transition-all duration-300 cursor-pointer select-none ${
                                         field.value === option.id 
                                           ? "border-primary bg-primary/5 shadow-[0_0_20px_rgba(255,255,255,0.05)]" 
-                                          : "border-white/10 hover:border-white/30"
+                                          : "border-white/10 hover:border-white/20"
                                       }`}
                                     >
                                       <RadioGroupItem value={option.id} className="sr-only" />
                                       <div className="flex-1">
-                                        <FormLabel className="font-display text-sm tracking-widest cursor-pointer block mb-1">
+                                        <h4 className="font-display text-sm tracking-widest block mb-1">
                                           {option.renderTitle()}
-                                        </FormLabel>
+                                        </h4>
                                         <p className="text-[10px] text-muted-foreground italic uppercase">
                                           ({option.desc})
                                         </p>
@@ -245,32 +245,35 @@ const VibeSurvey = () => {
                         render={({ field }) => (
                           <FormItem className="space-y-3">
                             <div className="grid grid-cols-1 gap-3">
-                              {itemsOptions.map((item) => (
-                                <label
-                                  key={item.id}
-                                  className={`flex flex-row items-center space-x-3 space-y-0 border p-4 transition-all duration-200 cursor-pointer ${
-                                    field.value?.includes(item.id)
-                                      ? "border-primary/50 bg-primary/5"
-                                      : "border-white/5 hover:bg-white/5"
-                                  }`}
-                                >
-                                  <Checkbox
-                                    checked={field.value?.includes(item.id)}
-                                    onCheckedChange={(checked) => {
-                                      const currentValues = Array.isArray(field.value) ? field.value : [];
-                                      if (checked) {
-                                        field.onChange([...currentValues, item.id]);
-                                      } else {
-                                        field.onChange(currentValues.filter((v) => v !== item.id));
-                                      }
-                                    }}
-                                    className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                                  />
-                                  <FormLabel className="text-[10px] font-medium tracking-widest uppercase cursor-pointer flex-grow py-1">
-                                    {item.label}
-                                  </FormLabel>
-                                </label>
-                              ))}
+                                {itemsOptions.map((item) => {
+                                  const isChecked = field.value?.includes(item.id);
+                                  return (
+                                    <label
+                                      key={item.id}
+                                      className={`flex flex-row items-center space-x-3 space-y-0 border p-4 transition-all duration-200 cursor-pointer select-none ${
+                                        isChecked
+                                          ? "border-primary/50 bg-primary/5"
+                                          : "border-white/5 hover:bg-white/5"
+                                      }`}
+                                    >
+                                      <Checkbox
+                                        checked={isChecked}
+                                        onCheckedChange={(checked) => {
+                                          const currentValues = Array.isArray(field.value) ? field.value : [];
+                                          if (checked) {
+                                            field.onChange([...currentValues, item.id]);
+                                          } else {
+                                            field.onChange(currentValues.filter((v: string) => v !== item.id));
+                                          }
+                                        }}
+                                        className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                                      />
+                                      <span className="text-[10px] font-medium tracking-widest uppercase flex-grow py-1">
+                                        {item.label}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -301,16 +304,16 @@ const VibeSurvey = () => {
                                 {decisionFactors.map((option) => (
                                   <label 
                                     key={option.id}
-                                    className={`flex items-center space-x-4 space-y-0 border p-4 transition-all duration-200 cursor-pointer ${
+                                    className={`flex items-center space-x-4 space-y-0 border p-4 transition-all duration-200 cursor-pointer select-none ${
                                       field.value === option.id 
                                         ? "border-primary/50 bg-primary/5" 
                                         : "border-white/5 hover:bg-white/5"
                                     }`}
                                   >
                                     <RadioGroupItem value={option.id} className="border-white/20 text-primary" />
-                                    <FormLabel className="font-medium text-[10px] tracking-widest uppercase cursor-pointer flex-grow py-1 leading-relaxed">
+                                    <span className="font-medium text-[10px] tracking-widest uppercase flex-grow py-1 leading-relaxed">
                                       {option.label}
-                                    </FormLabel>
+                                    </span>
                                   </label>
                                 ))}
                               </RadioGroup>

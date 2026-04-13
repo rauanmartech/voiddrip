@@ -26,8 +26,21 @@ import {
   MessageSquare,
   Percent,
   DollarSign,
-  Tag
+  Tag,
+  PieChart as PieChartIcon
 } from "lucide-react";
+import { 
+  BarChart as ReBarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip as ReTooltip, 
+  ResponsiveContainer, 
+  PieChart as RePieChart, 
+  Pie, 
+  Cell,
+  Legend
+} from 'recharts';
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS as PRODUCT_KEYS } from "@/hooks/useProducts";
 import { useAdminOrders, QUERY_KEYS as ORDER_KEYS } from "@/hooks/useOrders";
@@ -92,9 +105,12 @@ const AdminArea = () => {
       setLoading(false);
       if (session?.user?.email === ADMIN_EMAIL) {
         fetchProducts();
+        fetchFeedback();
       }
     });
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
       if (session?.user?.email === ADMIN_EMAIL) {
         fetchProducts();
         if (activeTab === "overview") {
@@ -324,6 +340,45 @@ const AdminArea = () => {
     setShowCouponForm(true);
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      if (files.length + existingImages.length > 9) {
+        toast.error("Máximo de 9 imagens permitidas");
+        return;
+      }
+      setImageFiles(prev => [...prev, ...files]);
+      setCoverImageIndex(0);
+      setCoverImageSource("new");
+    }
+  };
+
+  const removeImage = (index: number, type: "existing" | "new") => {
+    if (type === "existing") {
+      setExistingImages(prev => prev.filter((_, i) => i !== index));
+      if (coverImageSource === "existing" && coverImageIndex === index) {
+        setCoverImageIndex(0);
+      }
+    } else {
+      setImageFiles(prev => prev.filter((_, i) => i !== index));
+      if (coverImageSource === "new" && coverImageIndex === index) {
+        setCoverImageIndex(0);
+        setCoverImageSource("existing");
+      }
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassMessage(null);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) setPassMessage("Erro: " + error.message);
+    else {
+      setPassMessage("Senha atualizada com sucesso!");
+      setNewPassword("");
+    }
+  };
+
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-y border-primary rounded-full animate-spin" /></div>;
 
   const isAdmin = session?.user?.email === ADMIN_EMAIL;
@@ -377,10 +432,130 @@ const AdminArea = () => {
               {activeTab === "overview" && (
                 <motion.div key="ov" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                   <header><h2 className="text-2xl tracking-[0.4em] mb-2">DASHBOARD</h2><p className="text-[10px] text-muted-foreground tracking-[0.2em]">STATUS DO SISTEMA</p></header>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <StatCard icon={<ShoppingBag className="text-primary"/>} label="RECEITA TOTAL" value={`R$ ${totalRevenue.toFixed(2)}`} />
                     <StatCard icon={<Package className="text-primary"/>} label="PRODUTOS" value={productList.length.toString()} />
                     <StatCard icon={<Users className="text-primary"/>} label="PEDIDOS TOTAIS" value={allOrders?.length.toString() || "0"} />
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+                    {/* Vibe Chart */}
+                    <div className="bg-card/40 backdrop-blur-md border border-white/5 p-6 space-y-4">
+                      <header className="flex justify-between items-center">
+                        <h3 className="text-[10px] tracking-[0.3em] text-primary">DISTRIBUIÇÃO DE VIBE</h3>
+                        <PieChartIcon size={14} className="text-muted-foreground" />
+                      </header>
+                      <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RePieChart>
+                            <Pie
+                              data={Object.entries(feedbackList.reduce((acc: any, f) => { 
+                                const val = f.vibe || "N/A";
+                                acc[val] = (acc[val] || 0) + 1; 
+                                return acc; 
+                              }, {})).map(([name, value]) => ({ name, value }))}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={80}
+                              paddingAngle={5}
+                              dataKey="value"
+                            >
+                              {Object.entries(feedbackList.reduce((acc: any, f) => { acc[f.vibe || "N/A"] = (acc[f.vibe || "N/A"] || 0) + 1; return acc; }, {})).map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={["#00f2ff", "#7000ff", "#ff007a", "#ffea00", "#00ff95", "#ffffff"][index % 6]} />
+                              ))}
+                            </Pie>
+                            <ReTooltip 
+                              contentStyle={{ backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0', fontSize: '10px' }}
+                              itemStyle={{ color: '#fff' }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: '9px', paddingTop: '20px' }} />
+                          </RePieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Decision Factors Chart */}
+                    <div className="bg-card/40 backdrop-blur-md border border-white/5 p-6 space-y-4">
+                      <header className="flex justify-between items-center">
+                        <h3 className="text-[10px] tracking-[0.3em] text-primary">FATORES DE DECISÃO</h3>
+                        <BarChart size={14} className="text-muted-foreground" />
+                      </header>
+                      <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ReBarChart
+                            layout="vertical"
+                            data={Object.entries(feedbackList.reduce((acc: any, f) => { 
+                              const val = (f.decision_factor || "N/A").toUpperCase();
+                              acc[val] = (acc[val] || 0) + 1; 
+                              return acc; 
+                            }, {})).map(([name, value]) => ({ name, value })).sort((a: any, b: any) => b.value - a.value)}
+                            margin={{ left: 40, right: 20 }}
+                          >
+                            <XAxis type="number" hide />
+                            <YAxis 
+                              dataKey="name" 
+                              type="category" 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{ fill: '#888', fontSize: 8 }}
+                              width={80}
+                            />
+                            <ReTooltip 
+                              cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                              contentStyle={{ backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0', fontSize: '10px' }}
+                            />
+                            <Bar dataKey="value" radius={[0, 2, 2, 0]}>
+                              {Object.entries(feedbackList.reduce((acc: any, f) => { const v = (f.decision_factor || "N/A").toUpperCase(); acc[v] = (acc[v] || 0) + 1; return acc; }, {})).map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={["#7000ff", "#ff007a", "#00f2ff"][index % 3]} />
+                              ))}
+                            </Bar>
+                          </ReBarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Desired Items Chart */}
+                    <div className="bg-card/40 backdrop-blur-md border border-white/5 p-6 space-y-4 lg:col-span-2">
+                       <header className="flex justify-between items-center">
+                        <h3 className="text-[10px] tracking-[0.3em] text-primary">ITENS MAIS DESEJADOS</h3>
+                        <Package size={14} className="text-muted-foreground" />
+                      </header>
+                      <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ReBarChart 
+                            data={Object.entries((feedbackList || []).flatMap(f => f.items || []).reduce((acc: any, i) => { 
+                              const label = i.replace(/_/g, ' ').toUpperCase(); 
+                              acc[label] = (acc[label] || 0) + 1; 
+                              return acc; 
+                            }, {})).map(([name, value]) => ({ name, value })).sort((a: any, b: any) => b.value - a.value).slice(0, 8)}
+                            margin={{ top: 20, right: 30, left: 0, bottom: 60 }}
+                          >
+                            <XAxis 
+                              dataKey="name" 
+                              axisLine={{ stroke: 'rgba(255,255,255,0.05)' }} 
+                              tickLine={false} 
+                              tick={{ fill: '#888', fontSize: 8 }}
+                              interval={0}
+                              angle={-45}
+                              textAnchor="end"
+                              height={60}
+                            />
+                            <YAxis 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{ fill: '#888', fontSize: 8 }}
+                            />
+                            <ReTooltip 
+                              cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                              contentStyle={{ backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0', fontSize: '10px' }}
+                            />
+                            <Bar dataKey="value" fill="#00f2ff" radius={[2, 2, 0, 0]} />
+                          </ReBarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -494,7 +669,48 @@ const AdminArea = () => {
                     </div>
                     <div className="flex flex-col gap-2"><label>CATEGORIA</label><select value={prodCategory} onChange={e=>setProdCategory(e.target.value)} className="bg-black/40 border border-white/10 px-4 py-3"><option value="Camisetas">Camisetas</option><option value="Moletons">Moletons</option><option value="Calças">Calças</option><option value="Acessórios">Acessórios</option></select></div>
                     <div className="flex flex-col gap-2"><label>PREÇO</label><input type="number" step="0.01" required value={prodPrice} onChange={e=>setProdPrice(e.target.value)} className="bg-black/40 border border-white/10 px-4 py-3"/></div>
-                    <div className="md:col-span-2 flex flex-col gap-2"><label>IMAGENS (MÁX 9)</label><input type="file" multiple accept="image/*" onChange={handleImageChange} className="bg-black/40 border border-white/10 px-4 py-3"/></div>
+                    <div className="flex flex-col gap-2"><label>ESTOQUE</label><input type="number" required value={prodStock} onChange={e=>setProdStock(e.target.value)} className="bg-black/40 border border-white/10 px-4 py-3"/></div>
+                    
+                    <div className="flex flex-col gap-2"><label>TAMANHOS (P,M,G...)</label><input value={prodSizes} onChange={e=>setProdSizes(e.target.value)} className="bg-black/40 border border-white/10 px-4 py-3" placeholder="P, M, G, GG"/></div>
+                    <div className="flex flex-col gap-2"><label>CORES (PRETO,BRANCO...)</label><input value={prodColors} onChange={e=>setProdColors(e.target.value)} className="bg-black/40 border border-white/10 px-4 py-3" placeholder="Preto, Branco"/></div>
+                    
+                    <div className="md:col-span-2 flex flex-col gap-2">
+                      <label>IMAGENS (MÁX 9 TOTAL) - ESTRELA PARA CAPA</label>
+                      <input type="file" multiple accept="image/*" onChange={handleImageChange} className="bg-black/40 border border-white/10 px-4 py-3"/>
+                      
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {existingImages.map((url, idx) => (
+                          <div key={`exist-${idx}`} className="relative aspect-square border border-white/5 bg-white/5 group/img">
+                            <img src={url} className="w-full h-full object-cover" />
+                            <button 
+                              type="button" 
+                              onClick={() => { setCoverImageIndex(idx); setCoverImageSource("existing"); }} 
+                              className={`absolute top-1 left-1 p-1 rounded-full backdrop-blur-md transition-colors ${coverImageSource === "existing" && coverImageIndex === idx ? 'bg-primary text-black' : 'bg-black/50 text-white/50'}`}
+                            >
+                              <Star size={8} fill={coverImageSource === "existing" && coverImageIndex === idx ? "currentColor" : "none"} />
+                            </button>
+                            <button type="button" onClick={() => removeImage(idx, "existing")} className="absolute top-1 right-1 p-1 bg-red-500/80 text-white rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity">
+                              <LogOut size={8} className="rotate-90" />
+                            </button>
+                          </div>
+                        ))}
+                        {imageFiles.map((file, idx) => (
+                          <div key={`new-${idx}`} className="relative aspect-square border border-white/5 bg-white/5 group/img">
+                            <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
+                            <button 
+                              type="button" 
+                              onClick={() => { setCoverImageIndex(idx); setCoverImageSource("new"); }} 
+                              className={`absolute top-1 left-1 p-1 rounded-full backdrop-blur-md transition-colors ${coverImageSource === "new" && coverImageIndex === idx ? 'bg-primary text-black' : 'bg-black/50 text-white/50'}`}
+                            >
+                              <Star size={8} fill={coverImageSource === "new" && coverImageIndex === idx ? "currentColor" : "none"} />
+                            </button>
+                            <button type="button" onClick={() => removeImage(idx, "new")} className="absolute top-1 right-1 p-1 bg-red-500/80 text-white rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity">
+                              <LogOut size={8} className="rotate-90" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                     
                     <div className="md:col-span-2 flex gap-4 mt-6">
                       <button type="submit" disabled={saving} className="btn-explore flex-1 py-4">{saving ? "SALVANDO..." : "CONFIRMAR"}</button>
