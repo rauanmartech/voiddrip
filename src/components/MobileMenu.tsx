@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { X, Home, LayoutGrid, Package, TrendingUp, Info, LogOut, User, Settings } from "lucide-react";
+import { X, Home, LayoutGrid, Package, TrendingUp, Info, LogOut, User, Settings, ShoppingBag as OrdersIcon, Ticket } from "lucide-react";
+
 import { useAuth } from "@/contexts/AuthContext";
 
 interface MobileMenuProps {
@@ -131,6 +132,26 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                       </Link>
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Link 
+                      to="/pedidos" 
+                      onClick={onClose}
+                      className="flex flex-col items-center justify-center p-4 border border-white/5 bg-white/5 rounded-none"
+                    >
+                      <OrdersIcon size={18} className="text-muted-foreground mb-2" />
+                      <span className="font-display text-[8px] tracking-[0.2em] text-white uppercase text-center">Meus Pedidos</span>
+                    </Link>
+                    <Link 
+                      to="/cupons" 
+                      onClick={onClose}
+                      className="flex flex-col items-center justify-center p-4 border border-white/5 bg-white/5 rounded-none"
+                    >
+                      <Ticket size={18} className="text-muted-foreground mb-2" />
+                      <span className="font-display text-[8px] tracking-[0.2em] text-white uppercase text-center">Meus Cupons</span>
+                    </Link>
+                  </div>
+
                   
                   <button 
                     onClick={handleLogout}

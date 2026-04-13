@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { ShoppingBag, Menu, User, LogOut, Settings, LayoutDashboard, Heart, Home } from "lucide-react";
+import { ShoppingBag, Menu, User, LogOut, Settings, LayoutDashboard, Heart, Home, Ticket } from "lucide-react";
+
 import { Link, useNavigate } from "react-router-dom";
 import MobileMenu from "./MobileMenu";
 import { usePrefetchProducts } from "@/hooks/useProducts";
@@ -130,6 +131,12 @@ const Navbar = () => {
                           <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Minha Conta</span>
                         </Link>
 
+                        <Link to="/cupons" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
+                          <Ticket size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                          <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Meus Cupons</span>
+                        </Link>
+
+
                         {user.email === "rauanrocha.martech@gmail.com" && (
                           <Link to="/admin" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group border-y border-white/5">
                             <LayoutDashboard size={14} className="text-primary/70 group-hover:text-primary transition-colors" />
@@ -188,7 +195,18 @@ const Navbar = () => {
           </div>
 
           <div className="md:hidden flex items-center gap-6">
-            {!user && (
+            {user ? (
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="w-8 h-8 rounded-full border border-primary/20 bg-primary/5 flex items-center justify-center overflow-hidden"
+              >
+                {user.user_metadata?.avatar_url ? (
+                  <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={16} className="text-primary" />
+                )}
+              </button>
+            ) : (
               <button 
                 onClick={() => setIsAuthModalOpen(true)}
                 className="w-8 h-8 flex items-center justify-center rounded-full border border-[#00FF87]/20 bg-[#00FF87]/5 text-[#00FF87] shadow-[0_0_15px_rgba(0,255,135,0.2)] active:scale-90 transition-all"

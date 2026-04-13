@@ -32,7 +32,7 @@ const formSchema = z.object({
   decision_factor: z.string({
     required_error: "Conte-nos o que faz você decidir comprar.",
   }),
-  perfect_brand: z.string().min(5, "Conte um pouco mais para a gente!"),
+  perfect_brand: z.string().optional(),
 });
 
 const VibeSurvey = () => {
@@ -155,9 +155,38 @@ const VibeSurvey = () => {
                                 className="grid grid-cols-1 gap-4"
                               >
                                 {[
-                                  { id: "CÓDIGO DE MURO", desc: "grafite, rua, expressão" },
-                                  { id: "NAÇÃO EM CAMPO", desc: "futebol, pressão, Brasil" },
-                                  { id: "RAIZ 031", desc: "Minas, origem, identidade" },
+                                  { 
+                                    id: "CÓDIGO DE MURO", 
+                                    desc: "grafite, rua, expressão",
+                                    renderTitle: () => (
+                                      <span className="relative inline-block">
+                                        <span className="relative z-10 animate-glitch-1 text-white">CÓDIGO DE MURO</span>
+                                        <span className="absolute top-0 left-0 -z-10 animate-glitch-2 text-cyan-500 opacity-50">CÓDIGO DE MURO</span>
+                                        <span className="absolute top-0 left-0 -z-20 animate-glitch-1 text-fuchsia-500 opacity-50 translate-x-[1px]">CÓDIGO DE MURO</span>
+                                      </span>
+                                    )
+                                  },
+                                  { 
+                                    id: "NAÇÃO EM CAMPO", 
+                                    desc: "futebol, pressão, Brasil",
+                                    renderTitle: () => (
+                                      <>
+                                        <span className="text-[#22c55e]">NAÇÃO </span>
+                                        <span className="text-[#facc15]">EM </span>
+                                        <span className="text-[#3b82f6]">CAMPO</span>
+                                      </>
+                                    )
+                                  },
+                                  { 
+                                    id: "RAIZ 031", 
+                                    desc: "Minas, origem, identidade",
+                                    renderTitle: () => (
+                                      <>
+                                        <span className="text-white">RAIZ </span>
+                                        <span className="text-[#ef4444]">031</span>
+                                      </>
+                                    )
+                                  },
                                 ].map((option) => (
                                   <FormItem 
                                     key={option.id}
@@ -172,8 +201,8 @@ const VibeSurvey = () => {
                                       <RadioGroupItem value={option.id} className="sr-only" />
                                     </FormControl>
                                     <div className="flex-1">
-                                      <FormLabel className="font-display text-xs tracking-widest cursor-pointer block mb-1">
-                                        {option.id}
+                                      <FormLabel className="font-display text-sm tracking-widest cursor-pointer block mb-1">
+                                        {option.renderTitle()}
                                       </FormLabel>
                                       <p className="text-[10px] text-muted-foreground italic uppercase">
                                         ({option.desc})
@@ -319,7 +348,7 @@ const VibeSurvey = () => {
                       <div className="space-y-2 border-l-2 border-primary/20 pl-6">
                         <h2 className="text-xl font-display tracking-wider uppercase">A Visão</h2>
                         <p className="text-xs text-muted-foreground tracking-widest uppercase font-body font-medium">
-                          Se a VOID fosse perfeita pra você, como ela seria?
+                          Se a VOID fosse perfeita pra você, como ela seria? (opcional)
                         </p>
                       </div>
 
