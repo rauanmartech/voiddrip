@@ -33,10 +33,20 @@ export function PixPayment({ orderId, amount, email, onSuccess, onCancel }: PixP
 
         if (error) throw error;
 
-        const payment = data.transactions.payments[0];
+        // The Edge Function returns the raw MP /v1/orders object spread.
+        // QR code lives at: data.transactions.payments[0].payment_method
+        const payment = data?.transactions?.payments?.[0];
+        const qrCode = payment?.payment_method?.qr_code;
+        const qrCodeBase64 = payment?.payment_method?.qr_code_base64;
+
+        if (!qrCode) {
+          console.error('PIX response structure:', JSON.stringify(data, null, 2));
+          throw new Error('QR Code não encontrado na resposta do Mercado Pago.');
+        }
+
         setPixData({
-          qrCode: payment.payment_method.qr_code,
-          qrCodeBase64: payment.payment_method.qr_code_base64
+          qrCode,
+          qrCodeBase64
         });
       } catch (err: any) {
         toast.error("Erro ao gerar Pix: " + (err.message || "Tente novamente"));

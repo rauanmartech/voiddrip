@@ -119,17 +119,18 @@ serve(async (req) => {
 
     // ── Map MP status → internal order status ────────────────────────
     // /v1/payments: status = "approved" | "in_process" | "rejected" | "pending"
-    // /v1/orders:   status = "processed" | "rejected" | "pending"
+    // /v1/orders:   status = "processed" | "rejected" | "pending" | "action_required"
+    // NOTE: For PIX, "action_required" means QR code generated, AWAITING payment — NOT paid!
     let orderStatus = 'pending'
     const s = result.status
 
     if (
       s === 'approved' ||
-      s === 'action_required' ||
       (s === 'processed' && ['accredited', 'authorized'].includes(result.status_detail ?? ''))
     ) {
       orderStatus = 'paid'
-    } else if (s === 'in_process' || s === 'pending' || s === 'authorized') {
+    } else if (s === 'in_process' || s === 'pending' || s === 'authorized' || s === 'action_required') {
+      // 'action_required' = PIX QR code generated, user still needs to pay
       orderStatus = 'pending'
     } else if (s === 'rejected' || s === 'cancelled' || s === 'refunded' || s === 'charged_back') {
       orderStatus = 'failed'

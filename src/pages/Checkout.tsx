@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,8 +18,8 @@ import { PixPayment } from "@/components/PixPayment";
 type CheckoutStep = "identification" | "shipping" | "payment" | "success";
 
 const PAYMENT_METHODS = [
-  { id: "pix", label: "Pix (AprovaÃ§Ã£o InstantÃ¢nea)", icon: "âš¡" },
-  { id: "card", label: "CartÃ£o de CrÃ©dito (AtÃ© 12x)", icon: "ðŸ’³" }
+  { id: "pix", label: "Pix (Aprovação Instantânea)", icon: "⚡" },
+  { id: "card", label: "Cartão de Crédito (Até 12x)", icon: "💳" }
 ];
 
 const STYLES = {
@@ -102,14 +102,15 @@ export default function Checkout() {
 
 
 
-  // PIX POLLING: Monitor order status in real-time when on payment step
+  // PIX POLLING: Monitor order status in real-time ONLY when the user is on the PIX screen
+  // This must NOT run on the "choice" screen or during card payment to avoid false positives.
   useEffect(() => {
     let interval: number;
 
-    if (step === "payment" && orderId) {
-      // Check every 3 seconds if the order was approved via webhook
+    if (step === "payment" && paymentStep === "pix" && orderId) {
+      // Check every 4 seconds if the order was approved via MP webhook
       interval = window.setInterval(async () => {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("orders")
           .select("status")
           .eq("id", orderId)
@@ -120,13 +121,13 @@ export default function Checkout() {
           setStep("success");
           toast.success("Pagamento confirmado via Pix!");
         }
-      }, 3000);
+      }, 4000);
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [step, orderId]);
+  }, [step, paymentStep, orderId]);
 
   // --- Logic ---
 
