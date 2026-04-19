@@ -100,8 +100,8 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
 
                   // Input fields
                   inputBackgroundColor: "rgba(255,255,255,0.04)",
-                  inputBorderColor: "rgba(255,255,255,0.1)",
-                  inputFocusedBorderColor: "#84cc16",
+                  // NOTE: inputBorderColor, inputFocusedBorderColor, fontFamily
+                  // are NOT valid Bricks customVariables — removed to avoid warnings.
                   inputFocusedBoxShadow: "0 0 0 2px rgba(132,204,22,0.15)",
                   inputBorderWidth: "1px",
                   inputVerticalPadding: "14px",
@@ -121,9 +121,6 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
                   errorColor: "#f87171",
                   successColor: "#4ade80",
                   warningColor: "#facc15",
-
-                  // Font — match site's Orbitron/Inter
-                  fontFamily: "'Inter', 'Orbitron', sans-serif",
                 },
               },
             },
@@ -167,12 +164,19 @@ export function CardPaymentForm({ orderId, amount, email, onSuccess, onCancel }:
                   })
                   .then(({ data, error }) => {
                     if (error) { toast.error(error.message || "Falha no pagamento."); reject(); return; }
-                    if (["processed", "approved", "action_required"].includes(data?.status)) {
+                    // /v1/payments returns "approved"; /v1/orders returns "processed"
+                    const successStatuses = ["approved", "processed", "action_required", "authorized"];
+                    if (successStatuses.includes(data?.status)) {
                       toast.success("Pagamento aprovado!");
                       onSuccess();
                       resolve();
+                    } else if (data?.status === "in_process" || data?.status === "pending") {
+                      toast.success("Pagamento em análise. Você será notificado em breve.");
+                      onSuccess();
+                      resolve();
                     } else {
-                      toast.error("Pagamento recusado. Tente outro cartão.");
+                      const detail = data?.status_detail || data?.status || "recusado";
+                      toast.error(`Pagamento ${detail}. Verifique os dados do cartão e tente novamente.`);
                       reject();
                     }
                   })
