@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,8 +18,8 @@ import { PixPayment } from "@/components/PixPayment";
 type CheckoutStep = "identification" | "shipping" | "payment" | "success";
 
 const PAYMENT_METHODS = [
-  { id: "pix", label: "Pix (Aprovação Instantânea)", icon: "⚡" },
-  { id: "card", label: "Cartão de Crédito (Até 12x)", icon: "💳" }
+  { id: "pix", label: "Pix (AprovaÃ§Ã£o InstantÃ¢nea)", icon: "âš¡" },
+  { id: "card", label: "CartÃ£o de CrÃ©dito (AtÃ© 12x)", icon: "ðŸ’³" }
 ];
 
 const STYLES = {
@@ -142,7 +142,7 @@ export default function Checkout() {
       items.forEach(item => removeFromCart(item.id));
       toast.success("Pagamento confirmado!");
     } else if (statusResult === "failure") {
-      toast.error("O pagamento não foi concluído. Tente novamente.");
+      toast.error("O pagamento nÃ£o foi concluÃ­do. Tente novamente.");
     }
     
     if (isInitialized && items.length === 0 && step !== "success") {
@@ -202,9 +202,9 @@ export default function Checkout() {
             city: data.localidade,
             state: data.uf
           }));
-          toast.success("Endereço localizado!");
+          toast.success("EndereÃ§o localizado!");
         } else {
-          toast.error("CEP não encontrado.");
+          toast.error("CEP nÃ£o encontrado.");
         }
       } catch (e) {
         toast.error("Erro ao buscar CEP.");
@@ -283,7 +283,7 @@ export default function Checkout() {
 
       setOrderId(order.id);
       toast.success("Pedido gerado com sucesso!");
-      // Aqui entrará a lógica de Controle Total do Mercado Pago
+      // Aqui entrarÃ¡ a lÃ³gica de Controle Total do Mercado Pago
 
     } catch (e: any) {
       toast.error(`Erro: ${e.message}`);
@@ -301,7 +301,7 @@ export default function Checkout() {
   // Coupon validation and application
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
-      setCouponError("Digite um código de cupom");
+      setCouponError("Digite um cÃ³digo de cupom");
       return;
     }
 
@@ -317,14 +317,14 @@ export default function Checkout() {
         .single();
 
       if (couponError || !coupon) {
-        setCouponError("Cupom inválido");
+        setCouponError("Cupom invÃ¡lido");
         setValidatingCoupon(false);
         return;
       }
 
       // Check if coupon is active
       if (!coupon.active) {
-        setCouponError("Este cupom não está ativo");
+        setCouponError("Este cupom nÃ£o estÃ¡ ativo");
         setValidatingCoupon(false);
         return;
       }
@@ -346,7 +346,7 @@ export default function Checkout() {
         .maybeSingle();
 
       if (existingRedemption) {
-        setCouponError("Você já utilizou este cupom");
+        setCouponError("VocÃª jÃ¡ utilizou este cupom");
         setValidatingCoupon(false);
         return;
       }
@@ -411,7 +411,7 @@ export default function Checkout() {
           
           <div className="hidden md:flex items-center gap-6">
             <div className="flex items-center gap-2 text-[9px] font-display tracking-[0.2em] font-bold">
-              <span className={step === "identification" ? "text-primary" : "text-white/30"}>01 IDENTIFICAÇÃO</span>
+              <span className={step === "identification" ? "text-primary" : "text-white/30"}>01 IDENTIFICAÃ‡ÃƒO</span>
               <ChevronRight size={10} className="text-white/20" />
               <span className={step === "shipping" ? "text-primary" : "text-white/30"}>02 ENTREGA</span>
               <ChevronRight size={10} className="text-white/20" />
@@ -436,13 +436,13 @@ export default function Checkout() {
                   <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                     <UserIcon size={20} />
                   </div>
-                  <h2 className="font-display text-xl uppercase tracking-widest">Informações Pessoais</h2>
+                  <h2 className="font-display text-xl uppercase tracking-widest">InformaÃ§Ãµes Pessoais</h2>
                 </div>
 
                 <div className="space-y-6">
                   <motion.div animate={errors.includes("fullName") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      Nome Completo {errors.includes("fullName") && <span className="text-red-500 ml-1">✕</span>}
+                      Nome Completo {errors.includes("fullName") && <span className="text-red-500 ml-1">âœ•</span>}
                     </label>
                     <Input 
                       placeholder="Seu nome completo" 
@@ -457,7 +457,7 @@ export default function Checkout() {
 
                   <motion.div animate={errors.includes("email") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      E-mail {errors.includes("email") && <span className="text-red-500 ml-1">✕</span>}
+                      E-mail {errors.includes("email") && <span className="text-red-500 ml-1">âœ•</span>}
                     </label>
                     <Input 
                       placeholder="seu@e-mail.com" 
@@ -474,7 +474,7 @@ export default function Checkout() {
 
                   {!user && (
                     <Card className="p-6 bg-primary/5 border-primary/20 flex items-center justify-between mt-8">
-                       <p className="text-[10px] text-white/70 tracking-widest uppercase">Já possui uma conta?</p>
+                       <p className="text-[10px] text-white/70 tracking-widest uppercase">JÃ¡ possui uma conta?</p>
                        <button onClick={() => setIsAuthModalOpen(true)} className="text-[10px] font-bold text-primary tracking-widest uppercase hover:underline">Fazer login agora</button>
                     </Card>
                   )}
@@ -509,7 +509,7 @@ export default function Checkout() {
                     <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                       <MapPin size={20} />
                     </div>
-                    <h2 className="font-display text-xl uppercase tracking-widest">Endereço de Entrega</h2>
+                    <h2 className="font-display text-xl uppercase tracking-widest">EndereÃ§o de Entrega</h2>
                   </div>
                   
                   {user && savedAddresses.length > 0 && (
@@ -523,7 +523,7 @@ export default function Checkout() {
                         onClick={() => setShowSavedAddresses(!showSavedAddresses)}
                         className="text-[10px] tracking-widest text-primary uppercase font-bold hover:underline py-2 flex items-center gap-2"
                       >
-                        <ShieldCheck size={14} /> {showSavedAddresses ? "Ocultar meus endereços" : "Usar um endereço salvo"}
+                        <ShieldCheck size={14} /> {showSavedAddresses ? "Ocultar meus endereÃ§os" : "Usar um endereÃ§o salvo"}
                       </button>
                       
                       <AnimatePresence>
@@ -541,7 +541,7 @@ export default function Checkout() {
                                 onClick={() => {
                                   applySavedAddress(sa);
                                   setShowSavedAddresses(false);
-                                  toast.success(`Endereço "${sa.full_name}" aplicado.`);
+                                  toast.success(`EndereÃ§o "${sa.full_name}" aplicado.`);
                                 }}
                                 className={`text-left p-4 border transition-all ${
                                   address.zipCode === sa.zip_code && address.number === sa.number
@@ -566,7 +566,7 @@ export default function Checkout() {
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
                   <motion.div className="md:col-span-2" animate={errors.includes("zipCode") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      CEP {errors.includes("zipCode") && <span className="text-red-500 ml-1">✕</span>}
+                      CEP {errors.includes("zipCode") && <span className="text-red-500 ml-1">âœ•</span>}
                     </label>
                     <div className="relative">
                       <Input 
@@ -586,7 +586,7 @@ export default function Checkout() {
                   
                   <motion.div className="md:col-span-4" animate={errors.includes("street") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      Rua / Logradouro {errors.includes("street") && <span className="text-red-500 ml-1">✕</span>}
+                      Rua / Logradouro {errors.includes("street") && <span className="text-red-500 ml-1">âœ•</span>}
                     </label>
                     <Input 
                       placeholder="Nome da rua" 
@@ -601,7 +601,7 @@ export default function Checkout() {
 
                   <motion.div className="md:col-span-2" animate={errors.includes("number") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      Número {errors.includes("number") && <span className="text-red-500 ml-1">✕</span>}
+                      NÃºmero {errors.includes("number") && <span className="text-red-500 ml-1">âœ•</span>}
                     </label>
                     <Input 
                       placeholder="Ex: 123" 
@@ -639,9 +639,9 @@ export default function Checkout() {
                        <Smartphone size={16} className="text-primary" />
                        <div className="flex flex-col">
                           <label className={`text-[10px] tracking-widest uppercase font-bold ${errors.includes("phone") ? "text-red-500" : "text-white"}`}>
-                            Telefone para Entrega {errors.includes("phone") && <span className="ml-1">✕</span>}
+                            Telefone para Entrega {errors.includes("phone") && <span className="ml-1">âœ•</span>}
                           </label>
-                          <span className="text-[9px] text-muted-foreground">Será usado exclusivamente para avisos de entrega via WhatsApp.</span>
+                          <span className="text-[9px] text-muted-foreground">SerÃ¡ usado exclusivamente para avisos de entrega via WhatsApp.</span>
                        </div>
                     </div>
                     <Input 
@@ -717,7 +717,7 @@ export default function Checkout() {
                       </div>
                     </div>
                   </div>
-                  <h2 className="font-display text-xl tracking-[0.3em] uppercase">Revisão e Pagamento</h2>
+                  <h2 className="font-display text-xl tracking-[0.3em] uppercase">RevisÃ£o e Pagamento</h2>
                   <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Ambiente 100% Criptografado</p>
                 </div>
 
@@ -745,7 +745,7 @@ export default function Checkout() {
                             <div>
                               <h4 className="text-sm font-bold tracking-tight mb-1">{item.product.name}</h4>
                               <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
-                                {item.size || 'Padrão'} | Qtd: {item.quantity}
+                                {item.size || 'PadrÃ£o'} | Qtd: {item.quantity}
                               </p>
                             </div>
                             <div className="text-xs font-mono text-white/50">
@@ -806,12 +806,19 @@ export default function Checkout() {
                                    exit={{ opacity: 0 }}
                                    className="w-full space-y-3"
                                  >
-                                    <Button 
-                                      onClick={() => setPaymentStep("card")}
-                                      className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase bg-white text-black hover:bg-primary transition-colors"
-                                    >
-                                      <CreditCard className="mr-2" size={16} /> Pagar com Cartão
-                                    </Button>
+                                     {/* Card — temporariamente indisponivel */}
+                                     <div className="relative w-full">
+                                       <Button 
+                                         disabled
+                                         className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase bg-white/5 border border-white/10 text-white/30 cursor-not-allowed opacity-50"
+                                       >
+                                         <CreditCard className="mr-2 opacity-40" size={16} /> Pagar com Cartão
+                                       </Button>
+                                       <div className="absolute -top-2.5 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[8px] font-bold uppercase tracking-widest">
+                                         <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                                         Em manutenção
+                                       </div>
+                                     </div>
                                     <Button 
                                       onClick={() => setPaymentStep("pix")}
                                       className="w-full h-14 text-[10px] tracking-[0.3em] font-bold uppercase bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all group"
@@ -881,7 +888,7 @@ export default function Checkout() {
                     <Card className="bg-white/[0.02] border-white/10 p-6 space-y-6">
                       <div className="flex flex-col space-y-4">
                         <h3 className="text-[10px] tracking-[0.2em] uppercase font-bold text-muted-foreground flex items-center gap-2">
-                          <MapPin size={12} /> Entrega Prioritária
+                          <MapPin size={12} /> Entrega PrioritÃ¡ria
                         </h3>
                         
                         <div className="space-y-4">
@@ -897,15 +904,15 @@ export default function Checkout() {
                           <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
                             <Clock className="w-4 h-4 text-primary animate-pulse" />
                             <div>
-                              <p className="text-[8px] text-white/50 uppercase tracking-widest">Previsão de Chegada</p>
-                              <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Receba até {deliveryDate.split(',')[1]}</p>
+                              <p className="text-[8px] text-white/50 uppercase tracking-widest">PrevisÃ£o de Chegada</p>
+                              <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Receba atÃ© {deliveryDate.split(',')[1]}</p>
                             </div>
                           </div>
                         </div>
 
                         <div className="pt-4 border-t border-white/5">
                            <p className="text-[9px] text-muted-foreground/60 leading-relaxed uppercase tracking-tighter">
-                             O prazo de envio começa a contar após a confirmação do pagamento. Você receberá o código de rastreio via e-mail.
+                             O prazo de envio comeÃ§a a contar apÃ³s a confirmaÃ§Ã£o do pagamento. VocÃª receberÃ¡ o cÃ³digo de rastreio via e-mail.
                            </p>
                         </div>
                       </div>
@@ -918,7 +925,7 @@ export default function Checkout() {
                   disabled={isLoading}
                   className="mx-auto text-[10px] tracking-[0.2em] text-muted-foreground hover:text-white transition-colors flex items-center gap-2 uppercase font-bold py-4"
                 >
-                  <ArrowLeft size={12} /> Alterar endereço ou itens
+                  <ArrowLeft size={12} /> Alterar endereÃ§o ou itens
                 </button>
               </motion.div>
             )}
@@ -929,20 +936,20 @@ export default function Checkout() {
                     <CheckCircle2 size={48} />
                 </div>
                 <h1 className="font-display text-3xl uppercase tracking-[0.2em] mb-4">PEDIDO REALIZADO</h1>
-                <p className="text-muted-foreground mb-12">Sua vaga no VOID está garantida. Pedido <span className="text-white font-bold">#{orderId?.slice(0, 8)}</span>.</p>
+                <p className="text-muted-foreground mb-12">Sua vaga no VOID estÃ¡ garantida. Pedido <span className="text-white font-bold">#{orderId?.slice(0, 8)}</span>.</p>
                 
                 <Card className="w-full bg-white/[0.02] border-white/10 p-8 space-y-6 text-left mb-12">
                    <div className="flex items-center gap-3 text-primary">
                       <Truck size={18} />
-                      <span className="font-display text-xs tracking-widest uppercase font-bold">Previsão: {deliveryDate}</span>
+                      <span className="font-display text-xs tracking-widest uppercase font-bold">PrevisÃ£o: {deliveryDate}</span>
                    </div>
                    <p className="text-[10px] text-white/40 leading-relaxed italic">
-                      "Você tem garantia incondicional de 7 dias após o recebimento conforme o CDC."
+                      "VocÃª tem garantia incondicional de 7 dias apÃ³s o recebimento conforme o CDC."
                    </p>
                 </Card>
 
                 <Button onClick={() => navigate("/")} className="px-12 h-14 border border-white/20 bg-transparent text-white hover:bg-white hover:text-black tracking-[0.3em]">
-                   VOLTAR À LOJA
+                   VOLTAR Ã€ LOJA
                 </Button>
               </motion.div>
             )}
@@ -985,7 +992,7 @@ export default function Checkout() {
                           type="text"
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                          placeholder="CÓDIGO"
+                          placeholder="CÃ“DIGO"
                           className="flex-1 bg-black/40 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors uppercase"
                           onKeyPress={(e) => e.key === "Enter" && handleApplyCoupon()}
                         />
@@ -1037,7 +1044,7 @@ export default function Checkout() {
                    )}
                    <div className="flex justify-between text-[10px] tracking-widest text-primary uppercase font-bold">
                       <span>Frete</span>
-                      <span>GRÁTIS</span>
+                      <span>GRÃTIS</span>
                    </div>
                    <div className="flex justify-between items-end pt-4">
                       <span className="font-display text-sm tracking-widest">TOTAL</span>
@@ -1053,7 +1060,7 @@ export default function Checkout() {
                   <Clock size={18} />
                </div>
                <div>
-                  <p className="text-[10px] font-bold text-white uppercase tracking-widest">Última Chamada</p>
+                  <p className="text-[10px] font-bold text-white uppercase tracking-widest">Ãšltima Chamada</p>
                   <p className="text-[9px] text-orange-200/60 leading-none mt-1 uppercase">Envio hoje se finalizar em 42 min</p>
                </div>
              </div>
