@@ -824,10 +824,16 @@ export default function Checkout() {
                                  const message = `*NOVO PEDIDO - VOID DRIP* 🛸\n\n🆔 *Pedido:* #${createdOrderId.slice(0, 8)}\n👤 *Cliente:* ${buyerData.fullName}\n📧 *E-mail:* ${buyerData.email}\n📞 *Tel:* ${address.phone}\n\n📦 *Itens:*\n${cartItemsMsg}\n\n📍 *Entrega:*\n${address.street}, ${address.number}\n${address.city}/${address.state}\n\n💰 *Total:* ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalTotal)}`;
                                  
                                  const encodedMsg = encodeURIComponent(message);
-                                 window.open(`https://wa.me/5571983789492?text=${encodedMsg}`, "_blank");
+                                 const whatsappUrl = `https://wa.me/5571983789492?text=${encodedMsg}`;
                                  
+                                 // Limpa o carrinho e vai para a tela de sucesso primeiro para garantir o estado
                                  items.forEach(item => removeFromCart(item.id));
                                  setStep("success");
+                                 
+                                 // Pequeno delay para garantir que o estado do React foi processado antes do redirecionamento pesado
+                                 setTimeout(() => {
+                                   window.location.href = whatsappUrl;
+                                 }, 100);
                                }}
                                className="w-full h-16 text-[11px] tracking-[0.3em] font-bold uppercase relative overflow-hidden group bg-[#25D366] text-black hover:bg-[#20ba5a] transition-all duration-500 shadow-[0_0_20px_rgba(37,211,102,0.3)] hover:shadow-[0_0_35px_rgba(37,211,102,0.6)]"
                              >
@@ -909,7 +915,11 @@ export default function Checkout() {
                     <CheckCircle2 size={48} />
                 </div>
                 <h1 className="font-display text-3xl uppercase tracking-[0.2em] mb-4">PEDIDO REALIZADO</h1>
-                <p className="text-muted-foreground mb-12">Sua vaga no VOID está garantida. Pedido <span className="text-white font-bold">#{orderId?.slice(0, 8)}</span>.</p>
+                <p className="text-muted-foreground mb-4">Sua vaga no VOID está garantida. Pedido <span className="text-white font-bold">#{orderId?.slice(0, 8)}</span>.</p>
+                <div className="flex items-center gap-2 mb-12 text-primary text-[10px] tracking-widest uppercase font-bold animate-pulse">
+                  <div className="w-2 h-2 bg-primary rounded-full" />
+                  Redirecionando para o WhatsApp...
+                </div>
                 
                 <Card className="w-full bg-white/[0.02] border-white/10 p-8 space-y-6 text-left mb-12">
                    <div className="flex items-center gap-3 text-primary">
