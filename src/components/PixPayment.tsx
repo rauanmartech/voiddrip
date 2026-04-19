@@ -9,12 +9,13 @@ interface PixPaymentProps {
   orderId: string;
   amount: number;
   email: string;
+  fullName: string;
   identification: { type: string; number: string };
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function PixPayment({ orderId, amount, email, identification, onSuccess, onCancel }: PixPaymentProps) {
+export function PixPayment({ orderId, amount, email, fullName, identification, onSuccess, onCancel }: PixPaymentProps) {
   const [pixData, setPixData] = useState<{ qrCode: string; qrCodeBase64: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
@@ -28,6 +29,7 @@ export function PixPayment({ orderId, amount, email, identification, onSuccess, 
             orderId,
             paymentMethodId: 'pix',
             payerEmail: email,
+            fullName: fullName,
             amount,
             identification
           }

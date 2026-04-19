@@ -871,9 +871,10 @@ export default function Checkout() {
                                      <div className="max-w-xl mx-auto px-6 py-10">
                                         <PixPayment 
                                           identification={{ type: 'CPF', number: buyerData.documentNumber }}
-                                           orderId={orderId}
+                                          orderId={orderId}
                                           amount={cartTotal}
                                           email={buyerData.email}
+                                          fullName={buyerData.fullName}
                                           onSuccess={() => setStep("success")}
                                           onCancel={() => setPaymentStep("choice")}
                                         />
