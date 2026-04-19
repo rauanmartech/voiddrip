@@ -37,11 +37,12 @@ serve(async (req) => {
     let mpResponse: Response
 
     if (isPix) {
-      // ── PIX: use /v1/orders (Checkout API) ──────────────────────
-      const mpOrderData = {
-        type: "online",
-        processing_mode: "automatic",
-        total_amount: String(Number(amount).toFixed(2)),
+      // ── PIX: use /v1/payments (Direct Payments API) ─────────────
+      // Consistent with card payment and easier to handle identification.
+      const mpPaymentData = {
+        transaction_amount: Number(Number(amount).toFixed(2)),
+        payment_method_id: "pix",
+        description: `Pedido Void Drip #${orderId.slice(0, 8)}`,
         external_reference: orderId,
         payer: {
           email: payerEmail,
@@ -49,28 +50,18 @@ serve(async (req) => {
           last_name: "Void User",
           identification: identification,
         },
-        transactions: {
-          payments: [{
-            amount: String(Number(amount).toFixed(2)),
-            payment_method: {
-              id: "pix",
-              type: "bank_transfer",
-            },
-            expiration_time: "PT7M"
-          }]
-        }
       }
 
-      console.log("Creating Pix Order:", JSON.stringify(mpOrderData))
+      console.log("Creating Pix Payment:", JSON.stringify(mpPaymentData))
 
-      mpResponse = await fetch('https://api.mercadopago.com/v1/orders', {
+      mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Idempotency-Key': idempotencyKey,
           'Authorization': `Bearer ${MP_ACCESS_TOKEN}`
         },
-        body: JSON.stringify(mpOrderData)
+        body: JSON.stringify(mpPaymentData)
       })
 
       result = await mpResponse.json()

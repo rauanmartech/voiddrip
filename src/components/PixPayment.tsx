@@ -9,11 +9,12 @@ interface PixPaymentProps {
   orderId: string;
   amount: number;
   email: string;
+  identification: { type: string; number: string };
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function PixPayment({ orderId, amount, email, onSuccess, onCancel }: PixPaymentProps) {
+export function PixPayment({ orderId, amount, email, identification, onSuccess, onCancel }: PixPaymentProps) {
   const [pixData, setPixData] = useState<{ qrCode: string; qrCodeBase64: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
@@ -27,17 +28,18 @@ export function PixPayment({ orderId, amount, email, onSuccess, onCancel }: PixP
             orderId,
             paymentMethodId: 'pix',
             payerEmail: email,
-            amount
+            amount,
+            identification
           }
         });
 
         if (error) throw error;
 
-        // The Edge Function returns the raw MP /v1/orders object spread.
-        // QR code lives at: data.transactions.payments[0].payment_method
-        const payment = data?.transactions?.payments?.[0];
-        const qrCode = payment?.payment_method?.qr_code;
-        const qrCodeBase64 = payment?.payment_method?.qr_code_base64;
+        // The Edge Function now returns /v1/payments response for Pix.
+        // QR code lives at: data.point_of_interaction.transaction_data
+        const poi = data?.point_of_interaction?.transaction_data;
+        const qrCode = poi?.qr_code;
+        const qrCodeBase64 = poi?.qr_code_base64;
 
         if (!qrCode) {
           console.error('PIX response structure:', JSON.stringify(data, null, 2));

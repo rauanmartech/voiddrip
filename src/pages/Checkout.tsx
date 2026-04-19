@@ -18,8 +18,8 @@ import { PixPayment } from "@/components/PixPayment";
 type CheckoutStep = "identification" | "shipping" | "payment" | "success";
 
 const PAYMENT_METHODS = [
-  { id: "pix", label: "Pix (Aprovação Instantânea)", icon: "⚡" },
-  { id: "card", label: "Cartão de Crédito (Até 12x)", icon: "💳" }
+  { id: "pix", label: "Pix (Aprovação Instantânea)", icon: "?" },
+  { id: "card", label: "Cartão de Crédito (Até 12x)", icon: "??" }
 ];
 
 const STYLES = {
@@ -77,6 +77,7 @@ export default function Checkout() {
   const [buyerData, setBuyerData] = useState({
     fullName: "",
     email: user?.email || "",
+    documentNumber: "",
   });
 
   // Form States - Shipping
@@ -143,7 +144,7 @@ export default function Checkout() {
       items.forEach(item => removeFromCart(item.id));
       toast.success("Pagamento confirmado!");
     } else if (statusResult === "failure") {
-      toast.error("O pagamento nÃ£o foi concluÃ­do. Tente novamente.");
+      toast.error("O pagamento não foi concluído. Tente novamente.");
     }
     
     if (isInitialized && items.length === 0 && step !== "success") {
@@ -203,9 +204,9 @@ export default function Checkout() {
             city: data.localidade,
             state: data.uf
           }));
-          toast.success("EndereÃ§o localizado!");
+          toast.success("Endereço localizado!");
         } else {
-          toast.error("CEP nÃ£o encontrado.");
+          toast.error("CEP não encontrado.");
         }
       } catch (e) {
         toast.error("Erro ao buscar CEP.");
@@ -302,7 +303,7 @@ export default function Checkout() {
   // Coupon validation and application
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
-      setCouponError("Digite um cÃ³digo de cupom");
+      setCouponError("Digite um código de cupom");
       return;
     }
 
@@ -318,7 +319,7 @@ export default function Checkout() {
         .single();
 
       if (couponError || !coupon) {
-        setCouponError("Cupom invÃ¡lido");
+        setCouponError("Cupom inválido");
         setValidatingCoupon(false);
         return;
       }
@@ -347,7 +348,7 @@ export default function Checkout() {
         .maybeSingle();
 
       if (existingRedemption) {
-        setCouponError("VocÃª jÃ¡ utilizou este cupom");
+        setCouponError("Você já utilizou este cupom");
         setValidatingCoupon(false);
         return;
       }
@@ -412,7 +413,7 @@ export default function Checkout() {
           
           <div className="hidden md:flex items-center gap-6">
             <div className="flex items-center gap-2 text-[9px] font-display tracking-[0.2em] font-bold">
-              <span className={step === "identification" ? "text-primary" : "text-white/30"}>01 IDENTIFICAÃ‡ÃƒO</span>
+              <span className={step === "identification" ? "text-primary" : "text-white/30"}>01 IDENTIFICAÇÃO</span>
               <ChevronRight size={10} className="text-white/20" />
               <span className={step === "shipping" ? "text-primary" : "text-white/30"}>02 ENTREGA</span>
               <ChevronRight size={10} className="text-white/20" />
@@ -437,13 +438,13 @@ export default function Checkout() {
                   <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                     <UserIcon size={20} />
                   </div>
-                  <h2 className="font-display text-xl uppercase tracking-widest">InformaÃ§Ãµes Pessoais</h2>
+                  <h2 className="font-display text-xl uppercase tracking-widest">Informações Pessoais</h2>
                 </div>
 
                 <div className="space-y-6">
                   <motion.div animate={errors.includes("fullName") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      Nome Completo {errors.includes("fullName") && <span className="text-red-500 ml-1">âœ•</span>}
+                      Nome Completo {errors.includes("fullName") && <span className="text-red-500 ml-1">?</span>}
                     </label>
                     <Input 
                       placeholder="Seu nome completo" 
@@ -473,9 +474,27 @@ export default function Checkout() {
                     {user && <span className="text-[10px] text-primary/60 mt-2 block tracking-widest uppercase font-bold">Logado via {user.app_metadata?.provider || 'Auth'}</span>}
                   </motion.div>
 
+                  <motion.div animate={errors.includes("documentNumber") ? "shake" : ""} variants={shakeAnimation}>
+                    <label className={STYLES.label}>
+                      CPF {errors.includes("documentNumber") && <span className="text-red-500 ml-1">✖</span>}
+                    </label>
+                    <Input 
+                      placeholder="000.000.000-00" 
+                      value={buyerData.documentNumber} 
+                      onChange={e => {
+                        // Simple mask for CPF
+                        const val = e.target.value.replace(/\D/g, "").substring(0, 11);
+                        setBuyerData(prev => ({ ...prev, documentNumber: val }));
+                        setErrors(prev => prev.filter(err => err !== "documentNumber"));
+                      }}
+                      className={`${STYLES.input} ${errors.includes("documentNumber") ? "border-red-500" : ""}`}
+                    />
+                    <span className="text-[9px] text-muted-foreground mt-2 block tracking-widest uppercase">Necessário para emissão do Pix e Nota Fiscal.</span>
+                  </motion.div>
+
                   {!user && (
                     <Card className="p-6 bg-primary/5 border-primary/20 flex items-center justify-between mt-8">
-                       <p className="text-[10px] text-white/70 tracking-widest uppercase">JÃ¡ possui uma conta?</p>
+                       <p className="text-[10px] text-white/70 tracking-widest uppercase">Já possui uma conta?</p>
                        <button onClick={() => setIsAuthModalOpen(true)} className="text-[10px] font-bold text-primary tracking-widest uppercase hover:underline">Fazer login agora</button>
                     </Card>
                   )}
@@ -487,10 +506,11 @@ export default function Checkout() {
                       const newErrors: string[] = [];
                       if (!buyerData.fullName) newErrors.push("fullName");
                       if (!buyerData.email) newErrors.push("email");
+                      if (!buyerData.documentNumber || buyerData.documentNumber.length < 11) newErrors.push("documentNumber");
                       
                       if (newErrors.length > 0) {
                         setErrors(newErrors);
-                        toast.error("Por favor, preencha os campos marcados.");
+                        toast.error("Por favor, preencha os campos marcados corretamente.");
                         return;
                       }
                       setStep("shipping");
@@ -510,7 +530,7 @@ export default function Checkout() {
                     <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                       <MapPin size={20} />
                     </div>
-                    <h2 className="font-display text-xl uppercase tracking-widest">EndereÃ§o de Entrega</h2>
+                    <h2 className="font-display text-xl uppercase tracking-widest">Endereço de Entrega</h2>
                   </div>
                   
                   {user && savedAddresses.length > 0 && (
@@ -524,7 +544,7 @@ export default function Checkout() {
                         onClick={() => setShowSavedAddresses(!showSavedAddresses)}
                         className="text-[10px] tracking-widest text-primary uppercase font-bold hover:underline py-2 flex items-center gap-2"
                       >
-                        <ShieldCheck size={14} /> {showSavedAddresses ? "Ocultar meus endereÃ§os" : "Usar um endereÃ§o salvo"}
+                        <ShieldCheck size={14} /> {showSavedAddresses ? "Ocultar meus endereços" : "Usar um endereço salvo"}
                       </button>
                       
                       <AnimatePresence>
@@ -542,7 +562,7 @@ export default function Checkout() {
                                 onClick={() => {
                                   applySavedAddress(sa);
                                   setShowSavedAddresses(false);
-                                  toast.success(`EndereÃ§o "${sa.full_name}" aplicado.`);
+                                  toast.success(`Endereço "${sa.full_name}" aplicado.`);
                                 }}
                                 className={`text-left p-4 border transition-all ${
                                   address.zipCode === sa.zip_code && address.number === sa.number
@@ -602,7 +622,7 @@ export default function Checkout() {
 
                   <motion.div className="md:col-span-2" animate={errors.includes("number") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      NÃºmero {errors.includes("number") && <span className="text-red-500 ml-1">âœ•</span>}
+                      Número {errors.includes("number") && <span className="text-red-500 ml-1">?</span>}
                     </label>
                     <Input 
                       placeholder="Ex: 123" 
@@ -640,9 +660,9 @@ export default function Checkout() {
                        <Smartphone size={16} className="text-primary" />
                        <div className="flex flex-col">
                           <label className={`text-[10px] tracking-widest uppercase font-bold ${errors.includes("phone") ? "text-red-500" : "text-white"}`}>
-                            Telefone para Entrega {errors.includes("phone") && <span className="ml-1">âœ•</span>}
+                            Telefone para Entrega {errors.includes("phone") && <span className="ml-1">?</span>}
                           </label>
-                          <span className="text-[9px] text-muted-foreground">SerÃ¡ usado exclusivamente para avisos de entrega via WhatsApp.</span>
+                          <span className="text-[9px] text-muted-foreground">Será usado exclusivamente para avisos de entrega via WhatsApp.</span>
                        </div>
                     </div>
                     <Input 
@@ -718,7 +738,7 @@ export default function Checkout() {
                       </div>
                     </div>
                   </div>
-                  <h2 className="font-display text-xl tracking-[0.3em] uppercase">RevisÃ£o e Pagamento</h2>
+                  <h2 className="font-display text-xl tracking-[0.3em] uppercase">Revisão e Pagamento</h2>
                   <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Ambiente 100% Criptografado</p>
                 </div>
 
@@ -746,7 +766,7 @@ export default function Checkout() {
                             <div>
                               <h4 className="text-sm font-bold tracking-tight mb-1">{item.product.name}</h4>
                               <p className="text-[9px] text-muted-foreground uppercase tracking-widest">
-                                {item.size || 'PadrÃ£o'} | Qtd: {item.quantity}
+                                {item.size || 'Padrão'} | Qtd: {item.quantity}
                               </p>
                             </div>
                             <div className="text-xs font-mono text-white/50">
@@ -850,7 +870,8 @@ export default function Checkout() {
                                    <div className="flex-1 overflow-y-auto">
                                      <div className="max-w-xl mx-auto px-6 py-10">
                                         <PixPayment 
-                                          orderId={orderId}
+                                          identification={{ type: 'CPF', number: buyerData.documentNumber }}
+                                           orderId={orderId}
                                           amount={cartTotal}
                                           email={buyerData.email}
                                           onSuccess={() => setStep("success")}
@@ -889,7 +910,7 @@ export default function Checkout() {
                     <Card className="bg-white/[0.02] border-white/10 p-6 space-y-6">
                       <div className="flex flex-col space-y-4">
                         <h3 className="text-[10px] tracking-[0.2em] uppercase font-bold text-muted-foreground flex items-center gap-2">
-                          <MapPin size={12} /> Entrega PrioritÃ¡ria
+                          <MapPin size={12} /> Entrega Prioritária
                         </h3>
                         
                         <div className="space-y-4">
@@ -905,15 +926,15 @@ export default function Checkout() {
                           <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
                             <Clock className="w-4 h-4 text-primary animate-pulse" />
                             <div>
-                              <p className="text-[8px] text-white/50 uppercase tracking-widest">PrevisÃ£o de Chegada</p>
-                              <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Receba atÃ© {deliveryDate.split(',')[1]}</p>
+                              <p className="text-[8px] text-white/50 uppercase tracking-widest">Previsão de Chegada</p>
+                              <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Receba até {deliveryDate.split(',')[1]}</p>
                             </div>
                           </div>
                         </div>
 
                         <div className="pt-4 border-t border-white/5">
                            <p className="text-[9px] text-muted-foreground/60 leading-relaxed uppercase tracking-tighter">
-                             O prazo de envio comeÃ§a a contar apÃ³s a confirmaÃ§Ã£o do pagamento. VocÃª receberÃ¡ o cÃ³digo de rastreio via e-mail.
+                             O prazo de envio começa a contar após a confirmação do pagamento. Você receberá o código de rastreio via e-mail.
                            </p>
                         </div>
                       </div>
@@ -926,7 +947,7 @@ export default function Checkout() {
                   disabled={isLoading}
                   className="mx-auto text-[10px] tracking-[0.2em] text-muted-foreground hover:text-white transition-colors flex items-center gap-2 uppercase font-bold py-4"
                 >
-                  <ArrowLeft size={12} /> Alterar endereÃ§o ou itens
+                  <ArrowLeft size={12} /> Alterar endereço ou itens
                 </button>
               </motion.div>
             )}
@@ -937,20 +958,20 @@ export default function Checkout() {
                     <CheckCircle2 size={48} />
                 </div>
                 <h1 className="font-display text-3xl uppercase tracking-[0.2em] mb-4">PEDIDO REALIZADO</h1>
-                <p className="text-muted-foreground mb-12">Sua vaga no VOID estÃ¡ garantida. Pedido <span className="text-white font-bold">#{orderId?.slice(0, 8)}</span>.</p>
+                <p className="text-muted-foreground mb-12">Sua vaga no VOID está garantida. Pedido <span className="text-white font-bold">#{orderId?.slice(0, 8)}</span>.</p>
                 
                 <Card className="w-full bg-white/[0.02] border-white/10 p-8 space-y-6 text-left mb-12">
                    <div className="flex items-center gap-3 text-primary">
                       <Truck size={18} />
-                      <span className="font-display text-xs tracking-widest uppercase font-bold">PrevisÃ£o: {deliveryDate}</span>
+                      <span className="font-display text-xs tracking-widest uppercase font-bold">Previsão: {deliveryDate}</span>
                    </div>
                    <p className="text-[10px] text-white/40 leading-relaxed italic">
-                      "VocÃª tem garantia incondicional de 7 dias apÃ³s o recebimento conforme o CDC."
+                      "Você tem garantia incondicional de 7 dias após o recebimento conforme o CDC."
                    </p>
                 </Card>
 
                 <Button onClick={() => navigate("/")} className="px-12 h-14 border border-white/20 bg-transparent text-white hover:bg-white hover:text-black tracking-[0.3em]">
-                   VOLTAR Ã€ LOJA
+                   VOLTAR À LOJA
                 </Button>
               </motion.div>
             )}
@@ -993,7 +1014,7 @@ export default function Checkout() {
                           type="text"
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                          placeholder="CÃ“DIGO"
+                          placeholder="CÓDIGO"
                           className="flex-1 bg-black/40 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors uppercase"
                           onKeyPress={(e) => e.key === "Enter" && handleApplyCoupon()}
                         />
@@ -1061,7 +1082,7 @@ export default function Checkout() {
                   <Clock size={18} />
                </div>
                <div>
-                  <p className="text-[10px] font-bold text-white uppercase tracking-widest">Ãšltima Chamada</p>
+                  <p className="text-[10px] font-bold text-white uppercase tracking-widest">Última Chamada</p>
                   <p className="text-[9px] text-orange-200/60 leading-none mt-1 uppercase">Envio hoje se finalizar em 42 min</p>
                </div>
              </div>
@@ -1078,3 +1099,4 @@ export default function Checkout() {
     </div>
   );
 }
+
