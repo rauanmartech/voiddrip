@@ -824,7 +824,7 @@ export default function Checkout() {
                                  const message = `*NOVO PEDIDO - VOID DRIP* 🛸\n\n🆔 *Pedido:* #${createdOrderId.slice(0, 8)}\n👤 *Cliente:* ${buyerData.fullName}\n📧 *E-mail:* ${buyerData.email}\n📞 *Tel:* ${address.phone}\n\n📦 *Itens:*\n${cartItemsMsg}\n\n📍 *Entrega:*\n${address.street}, ${address.number}\n${address.city}/${address.state}\n\n💰 *Total:* ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalTotal)}`;
                                  
                                  const encodedMsg = encodeURIComponent(message);
-                                 window.open(`https://wa.me/5511995810486?text=${encodedMsg}`, "_blank");
+                                 window.open(`https://wa.me/5571983789492?text=${encodedMsg}`, "_blank");
                                  
                                  items.forEach(item => removeFromCart(item.id));
                                  setStep("success");

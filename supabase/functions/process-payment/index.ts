@@ -12,6 +12,7 @@ serve(async (req) => {
   }
 
   try {
+    const rawBody = await req.json()
     const { 
       orderId, 
       paymentMethodId, 
@@ -21,7 +22,7 @@ serve(async (req) => {
       fullName,
       amount,
       identification
-    } = await req.json()
+    } = rawBody
 
     const MP_ACCESS_TOKEN = Deno.env.get('MERCADO_PAGO_ACCESS_TOKEN')
     
@@ -29,16 +30,15 @@ serve(async (req) => {
       throw new Error("MERCADO_PAGO_ACCESS_TOKEN não configurado no Supabase.")
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
     const isPix = paymentMethodId === 'pix'
     const idempotencyKey = crypto.randomUUID()
 
     // Lógica para separar nome e sobrenome
-    const cleanName = fullName || payerEmail.split('@')[0]
+    const cleanName = fullName || (payerEmail ? payerEmail.split('@')[0] : "Cliente")
     const nameParts = cleanName.trim().split(/\s+/)
     const firstName = nameParts[0] || "Cliente"
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "VoidDrip"
@@ -47,7 +47,7 @@ serve(async (req) => {
       transaction_amount: Number(Number(amount).toFixed(2)),
       payment_method_id: isPix ? "pix" : paymentMethodId,
       token: isPix ? undefined : token,
-      description: `Pedido Void Drip #${orderId.slice(0, 8)}`,
+      description: `Pedido Void Drip #${orderId ? orderId.slice(0, 8) : 'DESC'}`,
       installments: isPix ? undefined : (Number(installments) || 1),
       external_reference: orderId,
       payer: {
@@ -87,25 +87,28 @@ serve(async (req) => {
     let orderStatus = 'pending'
     if (result.status === 'approved') orderStatus = 'paid'
 
-    await supabase.from('orders').update({ status: orderStatus }).eq('id', orderId)
-    await supabase.from('transactions').insert({
-      order_id: orderId,
-      payment_id: String(result.id),
-      payment_method: paymentMethodId,
-      status: result.status,
-      amount: amount,
-      gateway_response: result
-    })
+    if (orderId) {
+      await supabase.from('orders').update({ status: orderStatus }).eq('id', orderId)
+      await supabase.from('transactions').insert({
+        order_id: orderId,
+        payment_id: String(result.id),
+        payment_method: paymentMethodId,
+        status: result.status,
+        amount: amount,
+        gateway_response: result
+      })
+    }
 
     return new Response(
       JSON.stringify(result),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
-  } catch (error) {
-    console.error("Erro na Function:", error.message)
+  } catch (error: any) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
+    console.error("Erro na Function:", errorMessage)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
   }
