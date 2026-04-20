@@ -326,26 +326,4 @@
   100% { background-position: 200% 0; }
 }
 
-/* Mercado Pago Secure Fields — iframe must fill container exactly */
-[id^="form-checkout__cardNumber"],
-[id^="form-checkout__expirationDate"],
-[id^="form-checkout__securityCode"] {
-  height: 48px !important;
-  width: 100% !important;
-  display: block;
-  position: relative;
-}
 
-[id^="form-checkout__cardNumber"] iframe,
-[id^="form-checkout__expirationDate"] iframe,
-[id^="form-checkout__securityCode"] iframe {
-  height: 100% !important;
-  width: 100% !important;
-  display: block !important;
-  border: none !important;
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  pointer-events: auto !important;
-  z-index: 1;
-}

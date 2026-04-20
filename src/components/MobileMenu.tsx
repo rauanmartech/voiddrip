@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { X, Home, LayoutGrid, Package, TrendingUp, Info, LogOut, User, Settings, ShoppingBag as OrdersIcon, Ticket } from "lucide-react";
@@ -20,6 +21,17 @@ const menuItems = [
 const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   const handleLogout = async () => {
     await signOut();
@@ -45,7 +57,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-[80%] max-w-[400px] bg-background border-l border-white/5 z-[70] md:hidden overflow-hidden flex flex-col"
+            className="fixed inset-y-0 right-0 h-full h-[100dvh] w-[80%] max-w-[400px] bg-background border-l border-white/5 z-[70] md:hidden overflow-hidden flex flex-col"
           >
             {/* Cosmic Background Elements */}
             <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -73,7 +85,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
             </div>
 
             {/* Header */}
-            <div className="relative z-10 flex items-center justify-between p-8">
+            <div className="relative z-10 flex items-center justify-between p-6">
               <span className="font-display text-xs tracking-[0.4em] text-foreground">
                 VOID <span className="text-muted-foreground/50">DRIP</span>
               </span>
@@ -86,7 +98,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
             </div>
 
             {/* Navigation Items */}
-            <nav className="relative z-10 flex-grow px-8 pt-12 flex flex-col gap-8">
+            <nav className="relative z-10 flex-grow px-6 pt-4 flex flex-col justify-center gap-4">
               {menuItems.map((item, index) => (
                 <motion.div
                   key={item.label}
@@ -97,24 +109,24 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                   <Link
                     to={item.path}
                     onClick={onClose}
-                    className="group flex items-center gap-4 transition-all duration-300"
+                    className="group flex items-center gap-4 py-2 transition-all duration-300"
                   >
-                    <span className="text-muted-foreground/30 group-hover:text-white transition-colors">
+                    <span className="text-muted-foreground/30 group-hover:text-primary transition-colors">
                       {item.icon}
                     </span>
-                    <span className="font-display text-xl tracking-[0.3em] text-muted-foreground group-hover:text-foreground transition-all duration-300 group-hover:translate-x-2">
+                    <span className="font-display text-lg tracking-[0.2em] text-muted-foreground group-hover:text-foreground transition-all duration-300 group-hover:translate-x-1">
                       {item.label}
                     </span>
-                    <div className="h-px flex-grow bg-white/5 scale-x-0 group-hover:scale-x-100 transition-transform origin-right duration-500 ml-4" />
+                    <div className="h-[1px] flex-1 bg-white/5 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ml-4" />
                   </Link>
                 </motion.div>
               ))}
             </nav>
 
             {/* Footer Footer */}
-            <div className="relative z-10 p-8 border-t border-white/5 bg-black/20">
+            <div className="relative z-10 p-6 border-t border-white/5 bg-black/40">
               {user ? (
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 overflow-hidden">
                       {user.user_metadata?.avatar_url ? (
@@ -133,22 +145,22 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <Link 
                       to="/pedidos" 
                       onClick={onClose}
-                      className="flex flex-col items-center justify-center p-4 border border-white/5 bg-white/5 rounded-none"
+                      className="flex flex-col items-center justify-center py-3 px-4 border border-white/5 bg-white/5 rounded-none hover:bg-white/10 transition-colors"
                     >
-                      <OrdersIcon size={18} className="text-muted-foreground mb-2" />
-                      <span className="font-display text-[8px] tracking-[0.2em] text-white uppercase text-center">Meus Pedidos</span>
+                      <OrdersIcon size={16} className="text-muted-foreground mb-1.5" />
+                      <span className="font-display text-[7px] tracking-[0.2em] text-white uppercase text-center">Pedidos</span>
                     </Link>
                     <Link 
                       to="/cupons" 
                       onClick={onClose}
-                      className="flex flex-col items-center justify-center p-4 border border-white/5 bg-white/5 rounded-none"
+                      className="flex flex-col items-center justify-center py-3 px-4 border border-white/5 bg-white/5 rounded-none hover:bg-white/10 transition-colors"
                     >
-                      <Ticket size={18} className="text-muted-foreground mb-2" />
-                      <span className="font-display text-[8px] tracking-[0.2em] text-white uppercase text-center">Meus Cupons</span>
+                      <Ticket size={16} className="text-muted-foreground mb-1.5" />
+                      <span className="font-display text-[7px] tracking-[0.2em] text-white uppercase text-center">Cupons</span>
                     </Link>
                   </div>
 
@@ -166,16 +178,15 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                   
                   <button 
                     onClick={handleLogout}
-                    className="flex items-center gap-4 group w-full text-left mt-4"
+                    className="flex items-center gap-4 group w-full text-left mt-2"
                   >
-                    <span className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center bg-white/5 group-hover:bg-red-500/10 group-hover:border-red-500/40 transition-all duration-300 shadow-[0_0_20px_rgba(255,0,0,0.05)] group-hover:shadow-[0_0_30px_rgba(239,68,68,0.2)]">
-                      <LogOut size={18} className="text-muted-foreground group-hover:text-red-400 transition-colors" />
+                    <span className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 group-hover:bg-red-500/10 group-hover:border-red-500/40 transition-all duration-300 shadow-[0_0_20px_rgba(255,0,0,0.05)] group-hover:shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                      <LogOut size={16} className="text-muted-foreground group-hover:text-red-400 transition-colors" />
                     </span>
                     <div className="flex flex-col">
-                       <span className="font-display text-xs tracking-[0.3em] text-muted-foreground group-hover:text-white transition-colors uppercase">
+                       <span className="font-display text-[10px] tracking-[0.3em] text-muted-foreground group-hover:text-white transition-colors uppercase">
                         Sair do Void
                       </span>
-                      <span className="text-[8px] text-red-500/50 uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity">Finalizar Sessão</span>
                     </div>
                   </button>
                 </div>

@@ -11,16 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { CardPaymentForm } from "@/components/CardPaymentForm";
-import { PixPayment } from "@/components/PixPayment";
+
 
 // --- Types & Constants ---
 type CheckoutStep = "identification" | "shipping" | "payment" | "success";
 
-const PAYMENT_METHODS = [
-  { id: "pix", label: "Pix (Aprovação Instantânea)", icon: "?" },
-  { id: "card", label: "Cartão de Crédito (Até 12x)", icon: "??" }
-];
+
 
 const STYLES = {
   input: "bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-primary/50 transition-all h-12",
@@ -37,9 +33,7 @@ export default function Checkout() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [mpPreferenceId, setMpPreferenceId] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const [paymentStep, setPaymentStep] = useState<"choice" | "card" | "pix">("choice");
 
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
@@ -47,17 +41,7 @@ export default function Checkout() {
   const [couponError, setCouponError] = useState("");
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
-  // Lock body scroll when payment modal is open to prevent coordinate mismatch on iframes
-  useEffect(() => {
-    if (paymentStep === "card" || paymentStep === "pix") {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [paymentStep]);
+
 
   // Shake animation configuration
   const shakeAnimation = {
@@ -103,50 +87,11 @@ export default function Checkout() {
 
 
 
-  // PIX POLLING: Monitor order status in real-time ONLY when the user is on the PIX screen
-  // This must NOT run on the "choice" screen or during card payment to avoid false positives.
-  useEffect(() => {
-    let interval: number;
 
-    if (step === "payment" && paymentStep === "pix" && orderId) {
-      // Check every 4 seconds if the order was approved via MP webhook
-      interval = window.setInterval(async () => {
-        const { data } = await supabase
-          .from("orders")
-          .select("status")
-          .eq("id", orderId)
-          .single();
-
-        if (data && (data.status === "paid" || data.status === "approved")) {
-          clearInterval(interval);
-          setStep("success");
-          toast.success("Pagamento confirmado via Pix!");
-        }
-      }, 4000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [step, paymentStep, orderId]);
 
   // --- Logic ---
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const statusResult = params.get("status");
-    const orderIdParam = params.get("orderId");
-    
-    if (statusResult === "success" && orderIdParam) {
-      setOrderId(orderIdParam);
-      setStep("success");
-      // Clear cart
-      items.forEach(item => removeFromCart(item.id));
-      toast.success("Pagamento confirmado!");
-    } else if (statusResult === "failure") {
-      toast.error("O pagamento não foi concluído. Tente novamente.");
-    }
-    
     if (isInitialized && items.length === 0 && step !== "success") {
       navigate("/");
     }
@@ -793,24 +738,7 @@ export default function Checkout() {
                             </p>
                           )}
                           
-                          {/* Payment Options Dimension Icons */}
-                          <div className="flex items-center gap-3 pt-2 opacity-40">
-                            <div className="flex flex-col items-center gap-1">
-                               <div className="w-8 h-5 border border-white/20 rounded flex items-center justify-center bg-white/5">
-                                 <span className="text-[8px] font-bold">PIX</span>
-                               </div>
-                            </div>
-                            <div className="flex flex-col items-center gap-1">
-                               <div className="w-8 h-5 border border-white/20 rounded flex items-center justify-center bg-white/5">
-                                 <CreditCard size={10} />
-                               </div>
-                            </div>
-                            <div className="flex flex-col items-center gap-1">
-                               <div className="w-8 h-5 border border-white/20 rounded flex items-center justify-center bg-white/5">
-                                 <Package size={10} />
-                               </div>
-                            </div>
-                          </div>
+
                         </div>
                         
                         <div className="w-full md:w-72 flex items-center justify-center">

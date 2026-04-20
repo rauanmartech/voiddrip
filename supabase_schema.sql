@@ -55,7 +55,6 @@ CREATE TABLE public.orders (
   email text,
   payment_status text DEFAULT 'pending'::text,
   external_reference uuid,
-  mercado_pago_preference_id text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT orders_pkey PRIMARY KEY (id),

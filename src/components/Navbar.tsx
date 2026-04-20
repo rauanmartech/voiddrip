@@ -55,17 +55,7 @@ const Navbar = () => {
             <Link to="/" className="font-display text-sm tracking-[0.3em] text-foreground">
               VOID DRIP
             </Link>
-            <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
-            <Link 
-              to="/" 
-              className="p-2 text-muted-foreground hover:text-primary transition-all duration-300 group relative"
-              title="Voltar para a Loja"
-            >
-              <Home size={18} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
-              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black text-[8px] tracking-widest text-white px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 uppercase">
-                Home
-              </span>
-            </Link>
+
           </div>
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
@@ -121,17 +111,17 @@ const Navbar = () => {
                           <p className="text-[10px] text-white truncate font-body">{user.email}</p>
                         </div>
                         
-                        <Link to="/pedidos" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
+                        <Link to="/pedidos" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
                           <ShoppingBag size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
                           <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Meus Pedidos</span>
                         </Link>
 
-                        <Link to="/perfil" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
+                        <Link to="/perfil" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
                           <Settings size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
                           <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Minha Conta</span>
                         </Link>
 
-                        <Link to="/cupons" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
+                        <Link to="/cupons" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
                           <Ticket size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
                           <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Meus Cupons</span>
                         </Link>
@@ -139,7 +129,7 @@ const Navbar = () => {
 
                         {user.email === "rauanrocha.martech@gmail.com" && (
                           <>
-                            <Link to="/admin" className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group border-y border-white/5">
+                            <Link to="/admin" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group border-y border-white/5">
                               <LayoutDashboard size={14} className="text-primary/70 group-hover:text-primary transition-colors" />
                               <span className="font-display text-[9px] tracking-[0.2em] text-primary uppercase">Painel Admin</span>
                             </Link>
@@ -198,29 +188,84 @@ const Navbar = () => {
 
           <div className="md:hidden flex items-center gap-6">
             {user ? (
-              <Link
-                to="/perfil"
-                className="w-8 h-8 rounded-full border border-primary/20 bg-primary/5 flex items-center justify-center overflow-hidden"
-                aria-label="Abrir perfil"
-              >
-                {user.user_metadata?.avatar_url ? (
-                  <img
-                    src={user.user_metadata.avatar_url}
-                    alt="Profile"
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback-mobile');
-                      if (fallback) fallback.classList.remove('hidden');
-                    }}
-                  />
-                ) : null}
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="w-8 h-8 rounded-full border border-primary/20 bg-primary/5 flex items-center justify-center overflow-hidden active:scale-95 transition-transform"
+                  aria-label="Abrir perfil"
+                >
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="Profile"
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback-mobile');
+                        if (fallback) fallback.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
 
-                <div className={`avatar-fallback-mobile ${user.user_metadata?.avatar_url ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
-                  <User size={16} className="text-primary" />
-                </div>
-              </Link>
+                  <div className={`avatar-fallback-mobile ${user.user_metadata?.avatar_url ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
+                    <User size={16} className="text-primary" />
+                  </div>
+                </button>
+
+                <AnimatePresence>
+                  {isProfileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-4 w-56 bg-background/95 backdrop-blur-xl border border-white/10 p-2 z-[60] shadow-2xl"
+                    >
+                      <div className="px-4 py-3 border-b border-white/5 mb-2">
+                        <p className="font-display text-[9px] text-muted-foreground tracking-widest uppercase mb-1">Logado como</p>
+                        <p className="text-[10px] text-white truncate font-body">{user.email}</p>
+                      </div>
+                      
+                      <Link to="/pedidos" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
+                        <ShoppingBag size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                        <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Meus Pedidos</span>
+                      </Link>
+
+                      <Link to="/perfil" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
+                        <Settings size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                        <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Minha Conta</span>
+                      </Link>
+
+                      <Link to="/cupons" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">
+                        <Ticket size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                        <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Meus Cupons</span>
+                      </Link>
+
+
+                      {user.email === "rauanrocha.martech@gmail.com" && (
+                        <>
+                          <Link to="/admin" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group border-y border-white/5">
+                            <LayoutDashboard size={14} className="text-primary/70 group-hover:text-primary transition-colors" />
+                            <span className="font-display text-[9px] tracking-[0.2em] text-primary uppercase">Painel Admin</span>
+                          </Link>
+                        </>
+                      )}
+
+                      <button 
+                        onClick={async () => {
+                          await signOut();
+                          setIsProfileOpen(false);
+                          navigate('/');
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 transition-colors group text-left"
+                      >
+                        <LogOut size={14} className="text-muted-foreground group-hover:text-red-400 transition-colors" />
+                        <span className="font-display text-[9px] tracking-[0.2em] text-white uppercase">Sair do Void</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ) : (
               <button 
                 onClick={() => setIsAuthModalOpen(true)}

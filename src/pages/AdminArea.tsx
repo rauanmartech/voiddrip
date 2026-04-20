@@ -572,7 +572,7 @@ const AdminArea = () => {
                             <th className="py-4 px-2">CLIENTE / ID</th>
                             <th className="py-4 px-2">VALOR</th>
                             <th className="py-4 px-2">STATUS</th>
-                            <th className="py-4 px-2">MERCADO PAGO</th>
+                            <th className="py-4 px-2">CONTACTO</th>
                             <th className="py-4 px-2 text-right">GESTÃO</th>
                           </tr>
                         </thead>
@@ -597,11 +597,8 @@ const AdminArea = () => {
                                 </span>
                               </td>
                               <td className="py-4 px-2">
-                                {o.mercado_pago_order_id ? (
-                                  <div className="flex flex-col gap-1">
-                                    <span className="text-[8px] text-muted-foreground">ID: {o.mercado_pago_order_id}</span>
-                                    {o.payment_status_detail && <span className="text-[7px] text-primary/50">{o.payment_status_detail}</span>}
-                                  </div>
+                                {o.addresses && o.addresses[0] ? (
+                                  <span className="text-primary font-bold">{o.addresses[0].phone}</span>
                                 ) : 'N/A'}
                               </td>
                               <td className="py-4 px-2 text-right">

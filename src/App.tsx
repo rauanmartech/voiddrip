@@ -21,9 +21,6 @@ const Favorites = lazy(() => import("./pages/Favorites.tsx"));
 const ProductDetails = lazy(() => import("./pages/ProductDetails.tsx"));
 const Checkout = lazy(() => import("./pages/Checkout.tsx"));
 const Profile = lazy(() => import("./pages/Profile.tsx"));
-const Success = lazy(() => import("./pages/Success.tsx"));
-const Failure = lazy(() => import("./pages/Failure.tsx"));
-const Pending = lazy(() => import("./pages/Pending.tsx"));
 const Orders = lazy(() => import("./pages/Orders.tsx"));
 const VibeSurvey = lazy(() => import("./pages/VibeSurvey.tsx"));
 const MyCoupons = lazy(() => import("./pages/MyCoupons.tsx"));
@@ -70,9 +67,7 @@ const App = () => (
                   <Route path="/produto/:id" element={<ProductDetails />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/perfil" element={<Profile />} />
-                  <Route path="/success" element={<Success />} />
-                  <Route path="/failure" element={<Failure />} />
-                  <Route path="/pending" element={<Pending />} />
+
                   <Route path="/pedidos" element={<Orders />} />
                   <Route path="/cupons" element={<MyCoupons />} />
                   <Route path="/vibes" element={<VibeSurvey />} />
