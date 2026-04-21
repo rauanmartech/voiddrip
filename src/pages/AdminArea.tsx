@@ -27,7 +27,8 @@ import {
   Percent,
   DollarSign,
   PieChart as PieChartIcon,
-  Layers
+  Layers,
+  Copy
 } from "lucide-react";
 import { 
   BarChart as ReBarChart, 
@@ -205,6 +206,26 @@ const AdminArea = () => {
     setError(null);
     setSuccess(null);
     setActiveTab("products");
+  };
+
+  const handleDuplicateProduct = (product: any) => {
+    setIsEditing(false);
+    setEditingId(null);
+    setProdName(`${product.name} (COPIA)`);
+    setProdDesc(product.description || "");
+    setProdCategory(product.category);
+    setProdPrice(product.price.toString());
+    setProdSizes(product.sizes?.join(", ") || "");
+    setProdColors(product.colors?.join(", ") || "");
+    setProdStock(product.stock_quantity.toString());
+    setImageFiles([]);
+    setExistingImages(product.image_url ? product.image_url.split(',') : []);
+    setCoverImageIndex(0);
+    setCoverImageSource("existing");
+    setError(null);
+    setSuccess(null);
+    setActiveTab("products");
+    toast.info("Item duplicado. Ajuste os detalhes e confirme.");
   };
 
   const handleSaveProduct = async (e: React.FormEvent) => {
@@ -746,8 +767,9 @@ const AdminArea = () => {
                             <td className="py-4 text-[10px]">R$ {p.price.toFixed(2)}</td>
                             <td className="py-4 text-[10px]">{p.stock_quantity}</td>
                             <td className="py-4 text-right flex justify-end gap-2 pr-2">
-                              <button onClick={() => openEditProduct(p)} className="p-2 text-muted-foreground hover:text-primary"><Edit3 size={14}/></button>
-                              <button onClick={() => deleteProduct(p.id)} className="p-2 text-muted-foreground hover:text-red-500"><Trash2 size={14}/></button>
+                              <button onClick={() => handleDuplicateProduct(p)} title="Duplicar" className="p-2 text-muted-foreground hover:text-primary"><Copy size={14}/></button>
+                              <button onClick={() => openEditProduct(p)} title="Editar" className="p-2 text-muted-foreground hover:text-primary"><Edit3 size={14}/></button>
+                              <button onClick={() => deleteProduct(p.id)} title="Excluir" className="p-2 text-muted-foreground hover:text-red-500"><Trash2 size={14}/></button>
                             </td>
                           </tr>
                         ))}
