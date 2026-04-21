@@ -740,7 +740,7 @@ const AdminArea = () => {
                         {productList.map(p => (
                           <tr key={p.id} className="hover:bg-white/[0.02]">
                             <td className="py-4 flex items-center gap-3">
-                              <div className="w-10 h-10 bg-secondary border border-border overflow-hidden">{p.image_url && <img src={p.image_url.split(',')[0]} className="w-full h-full object-cover grayscale"/>}</div>
+                              <div className="w-10 h-10 bg-secondary border border-border overflow-hidden">{p.image_url && <img src={p.image_url.split(',')[0]} className="w-full h-full object-cover"/>}</div>
                               <span className="text-[10px] tracking-widest">{p.name}</span>
                             </td>
                             <td className="py-4 text-[10px]">R$ {p.price.toFixed(2)}</td>
@@ -968,7 +968,7 @@ const AdminArea = () => {
                                 onClick={() => toggleProductSelection(p.id)}
                                 className={`relative aspect-square border cursor-pointer transition-all group ${selectedProductIds.includes(p.id) ? 'border-primary' : 'border-white/5 opacity-40 hover:opacity-100'}`}
                               >
-                                {p.image_url && <img src={p.image_url.split(',')[0]} className="w-full h-full object-cover grayscale group-hover:grayscale-0"/>}
+                                {p.image_url && <img src={p.image_url.split(',')[0]} className="w-full h-full object-cover"/>}
                                 <div className="absolute inset-0 bg-black/40 flex items-end p-1">
                                   <span className="text-[6px] truncate w-full">{p.name}</span>
                                 </div>
@@ -995,7 +995,7 @@ const AdminArea = () => {
                       <div key={s.id} className="bg-card/40 border border-white/5 overflow-hidden group">
                         <div className="aspect-video relative">
                           {s.banner_url ? (
-                            <img src={s.banner_url} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"/>
+                            <img src={s.banner_url} className="w-full h-full object-cover transition-all duration-700"/>
                           ) : (
                             <div className="w-full h-full bg-secondary flex items-center justify-center text-muted-foreground text-[8px]">SEM BANNER</div>
                           )}

@@ -86,7 +86,7 @@ const Collection = () => {
                           <img 
                             src={set.banner_url} 
                             alt={set.name}
-                            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-100"
+                            className="w-full h-full object-cover transition-all duration-1000 scale-105 group-hover:scale-100"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -131,7 +131,7 @@ const Collection = () => {
                             <img 
                               src={item.products.image_url.split(',')[0]} 
                               alt={item.products.name}
-                              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                              className="w-full h-full object-cover transition-all duration-500"
                             />
                          </div>
 
