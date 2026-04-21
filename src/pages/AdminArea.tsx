@@ -26,8 +26,8 @@ import {
   MessageSquare,
   Percent,
   DollarSign,
-  Tag,
-  PieChart as PieChartIcon
+  PieChart as PieChartIcon,
+  Layers
 } from "lucide-react";
 import { 
   BarChart as ReBarChart, 
@@ -52,7 +52,7 @@ const ADMIN_EMAIL = "rauanrocha.martech@gmail.com";
 const AdminArea = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "products" | "list" | "orders" | "settings" | "feedback" | "coupons">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "products" | "list" | "orders" | "settings" | "feedback" | "coupons" | "sets">("overview");
   
   const { data: allOrders, isLoading: loadingOrders } = useAdminOrders();
 
@@ -88,6 +88,17 @@ const AdminArea = () => {
   const [loadingCoupons, setLoadingCoupons] = useState(false);
   const [showCouponForm, setShowCouponForm] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<any>(null);
+
+  // Sets states
+  const [setsList, setSetsList] = useState<any[]>([]);
+  const [loadingSets, setLoadingSets] = useState(false);
+  const [showSetForm, setShowSetForm] = useState(false);
+  const [editingSet, setEditingSet] = useState<any>(null);
+  const [setName, setSetName] = useState("");
+  const [setDesc, setSetDesc] = useState("");
+  const [setBannerFile, setSetBannerFile] = useState<File | null>(null);
+  const [existingBannerUrl, setExistingBannerUrl] = useState("");
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
 
   // Coupon form states
   const [couponCode, setCouponCode] = useState("");
@@ -141,6 +152,16 @@ const AdminArea = () => {
     const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     if (data) setProductList(data);
     setLoadingList(false);
+  };
+
+  const fetchSets = async () => {
+    setLoadingSets(true);
+    const { data, error } = await supabase
+      .from('product_sets')
+      .select('*, set_items(product_id)')
+      .order('created_at', { ascending: false });
+    if (data) setSetsList(data);
+    setLoadingSets(false);
   };
 
   const handleLogout = async () => {
@@ -379,6 +400,89 @@ const AdminArea = () => {
     }
   };
 
+  // Sets management functions
+  const handleSaveSet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedProductIds.length === 0) {
+      toast.error("Selecione ao menos um produto para o conjunto");
+      return;
+    }
+    setSaving(true);
+    try {
+      let bannerUrl = existingBannerUrl;
+      if (setBannerFile) {
+        const fileExt = setBannerFile.name.split('.').pop();
+        const fileName = `set_${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('produtos').upload(fileName, setBannerFile);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabase.storage.from('produtos').getPublicUrl(fileName);
+        bannerUrl = publicUrlData.publicUrl;
+      }
+
+      const setData = {
+        name: setName,
+        description: setDesc,
+        banner_url: bannerUrl
+      };
+
+      let setId = editingSet?.id;
+      if (editingSet) {
+        const { error } = await supabase.from('product_sets').update(setData).eq('id', editingSet.id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('product_sets').insert(setData).select();
+        if (error) throw error;
+        setId = data[0].id;
+      }
+
+      // Update set items
+      await supabase.from('set_items').delete().eq('set_id', setId);
+      const itemsToInsert = selectedProductIds.map(pid => ({ set_id: setId, product_id: pid }));
+      const { error: itemsError } = await supabase.from('set_items').insert(itemsToInsert);
+      if (itemsError) throw itemsError;
+
+      toast.success(editingSet ? "Conjunto atualizado" : "Conjunto criado");
+      setShowSetForm(false);
+      resetSetForm();
+      fetchSets();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteSet = async (id: string) => {
+    if (!confirm("Excluir conjunto?")) return;
+    const { error } = await supabase.from('product_sets').delete().eq('id', id);
+    if (error) toast.error("Erro ao excluir");
+    else { toast.success("Conjunto removido"); fetchSets(); }
+  };
+
+  const resetSetForm = () => {
+    setSetName("");
+    setSetDesc("");
+    setSetBannerFile(null);
+    setExistingBannerUrl("");
+    setSelectedProductIds([]);
+    setEditingSet(null);
+  };
+
+  const openEditSet = (set: any) => {
+    setEditingSet(set);
+    setSetName(set.name);
+    setSetDesc(set.description || "");
+    setExistingBannerUrl(set.banner_url || "");
+    setSelectedProductIds(set.set_items?.map((i: any) => i.product_id) || []);
+    setShowSetForm(true);
+  };
+
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProductIds(prev => 
+      prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
+    );
+  };
+
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-y border-primary rounded-full animate-spin" /></div>;
 
   const isAdmin = session?.user?.email === ADMIN_EMAIL;
@@ -421,6 +525,7 @@ const AdminArea = () => {
               <SidebarItem icon={<MessageSquare size={16} />} label="FEEDBACK" active={activeTab === "feedback"} onClick={() => { setActiveTab("feedback"); fetchFeedback(); }} />
               <SidebarItem icon={<List size={16} />} label="ESTOQUE" active={activeTab === "list"} onClick={() => { setActiveTab("list"); fetchProducts(); }} />
               <SidebarItem icon={<PlusCircle size={16} />} label="NOVO PRODUTO" active={activeTab === "products"} onClick={openAddProduct} />
+              <SidebarItem icon={<Layers size={16} />} label="CONJUNTOS" active={activeTab === "sets"} onClick={() => { setActiveTab("sets"); fetchSets(); }} />
               <SidebarItem icon={<Settings size={16} />} label="CONTA" active={activeTab === "settings"} onClick={() => setActiveTab("settings")} />
               <button onClick={handleLogout} className="flex items-center gap-4 px-4 py-3 text-[10px] tracking-[0.3em] text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all mt-4"><LogOut size={16}/><span>LOGOUT</span></button>
             </nav>
@@ -823,6 +928,89 @@ const AdminArea = () => {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === "sets" && (
+                <motion.div key="st" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                  <header className="flex justify-between items-end">
+                    <div><h2 className="text-2xl tracking-[0.4em] mb-2">CONJUNTOS</h2><p className="text-[10px] text-muted-foreground tracking-[0.2em]">GESTÃO DE LOOKS COMPLETOS</p></div>
+                    <button onClick={() => { resetSetForm(); setShowSetForm(true); }} className="text-[10px] text-primary hover:underline"> + NOVO CONJUNTO</button>
+                  </header>
+
+                  {showSetForm && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="p-6 border border-primary/20 bg-primary/5 space-y-6">
+                      <form onSubmit={handleSaveSet} className="space-y-6 text-[10px] tracking-widest text-left">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="flex flex-col gap-2">
+                            <label>NOME DO CONJUNTO</label>
+                            <input required value={setName} onChange={e=>setSetName(e.target.value)} className="bg-black/40 border border-white/10 px-4 py-3"/>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <label>BANNER DO CONJUNTO</label>
+                            <input type="file" accept="image/*" onChange={e => setSetBannerFile(e.target.files?.[0] || null)} className="bg-black/40 border border-white/10 px-4 py-3 text-[8px]"/>
+                            {existingBannerUrl && !setBannerFile && <p className="text-[8px] text-muted-foreground mt-1">Banner atual salvo.</p>}
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-2">
+                          <label>DESCRIÇÃO</label>
+                          <textarea rows={2} value={setDesc} onChange={e=>setSetDesc(e.target.value)} className="bg-black/40 border border-white/10 px-4 py-3 resize-none"/>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <label>SELECIONAR PEÇAS ({selectedProductIds.length})</label>
+                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-[300px] overflow-y-auto p-2 bg-black/20 border border-white/5">
+                            {productList.map(p => (
+                              <div 
+                                key={p.id} 
+                                onClick={() => toggleProductSelection(p.id)}
+                                className={`relative aspect-square border cursor-pointer transition-all group ${selectedProductIds.includes(p.id) ? 'border-primary' : 'border-white/5 opacity-40 hover:opacity-100'}`}
+                              >
+                                {p.image_url && <img src={p.image_url.split(',')[0]} className="w-full h-full object-cover grayscale group-hover:grayscale-0"/>}
+                                <div className="absolute inset-0 bg-black/40 flex items-end p-1">
+                                  <span className="text-[6px] truncate w-full">{p.name}</span>
+                                </div>
+                                {selectedProductIds.includes(p.id) && (
+                                  <div className="absolute top-1 right-1 bg-primary text-black p-0.5 rounded-full">
+                                    <CheckCircle2 size={8}/>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-4 pt-4">
+                          <button type="submit" disabled={saving} className="btn-explore flex-1 py-4">{saving ? "SALVANDO..." : "CONFIRMAR CONJUNTO"}</button>
+                          <button type="button" onClick={() => { setShowSetForm(false); resetSetForm(); }} className="px-6 border border-white/10">CANCELAR</button>
+                        </div>
+                      </form>
+                    </motion.div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {setsList.map(s => (
+                      <div key={s.id} className="bg-card/40 border border-white/5 overflow-hidden group">
+                        <div className="aspect-video relative">
+                          {s.banner_url ? (
+                            <img src={s.banner_url} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"/>
+                          ) : (
+                            <div className="w-full h-full bg-secondary flex items-center justify-center text-muted-foreground text-[8px]">SEM BANNER</div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                          <div className="absolute bottom-4 left-4 right-4">
+                            <h3 className="text-sm tracking-widest">{s.name}</h3>
+                            <p className="text-[8px] text-muted-foreground mt-1">{s.set_items?.length || 0} PEÇAS</p>
+                          </div>
+                        </div>
+                        <div className="p-4 flex justify-between items-center bg-black/40">
+                          <button onClick={() => openEditSet(s)} className="text-[8px] tracking-widest hover:text-primary transition-colors flex items-center gap-2"><Edit3 size={10}/> EDITAR</button>
+                          <button onClick={() => deleteSet(s.id)} className="text-[8px] tracking-widest hover:text-red-500 transition-colors flex items-center gap-2"><Trash2 size={10}/> EXCLUIR</button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
