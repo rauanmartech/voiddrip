@@ -83,6 +83,15 @@ const Collection = () => {
                 <div className="lg:col-span-5 xl:col-span-4 space-y-6">
                    <div className="relative group">
                       <div className="aspect-square overflow-hidden bg-secondary border border-white/5 relative">
+                        {/* Sold Out Overlay for Set */}
+                        {set.set_items?.every((i: any) => i.products.stock_quantity <= 0) && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center overflow-hidden z-20 pointer-events-none">
+                            <div className="bg-primary text-black font-display text-[10px] tracking-[0.5em] py-2 px-12 -rotate-45 whitespace-nowrap shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                              SOLD OUT
+                            </div>
+                          </div>
+                        )}
+
                         {set.banner_url ? (
                           <img 
                             src={set.banner_url} 
@@ -128,7 +137,12 @@ const Collection = () => {
                         className="group flex items-center gap-6 p-4 bg-card/10 backdrop-blur-md border border-white/5 hover:border-primary/20 transition-all cursor-pointer relative overflow-hidden"
                         onClick={() => setSelectedProduct(item.products as any)}
                       >
-                         <div className="w-24 h-24 sm:w-32 sm:h-32 bg-secondary flex-shrink-0 overflow-hidden border border-white/5">
+                         <div className="w-24 h-24 sm:w-32 sm:h-32 bg-secondary flex-shrink-0 overflow-hidden border border-white/5 relative">
+                            {item.products.stock_quantity <= 0 && (
+                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 backdrop-blur-[1px]">
+                                <span className="text-[7px] tracking-[0.2em] text-white/80 border border-white/20 px-2 py-1">ESGOTADO</span>
+                              </div>
+                            )}
                             <img 
                               src={item.products.image_url.split(',')[0]} 
                               alt={item.products.name}
@@ -226,7 +240,12 @@ const Collection = () => {
                       // but ProductModal is higher z-index anyway.
                     }}
                   >
-                    <div className="aspect-square mb-4 overflow-hidden bg-secondary">
+                    <div className="aspect-square mb-4 overflow-hidden bg-secondary relative">
+                      {item.products.stock_quantity <= 0 && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 backdrop-blur-[1px]">
+                          <span className="text-[7px] tracking-[0.2em] text-white/80 border border-white/20 px-2 py-1">ESGOTADO</span>
+                        </div>
+                      )}
                       <img 
                         src={item.products.image_url.split(',')[0]} 
                         alt={item.products.name}
