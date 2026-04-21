@@ -83,11 +83,27 @@ const Collection = () => {
                 <div className="lg:col-span-5 xl:col-span-4 space-y-6">
                    <div className="relative group">
                       <div className="aspect-square overflow-hidden bg-secondary border border-white/5 relative">
-                        {/* Sold Out Overlay for Set */}
+                        {/* Redesigned Sold Out Overlay for Set */}
                         {set.set_items?.every((i: any) => i.products.stock_quantity <= 0) && (
-                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center overflow-hidden z-20 pointer-events-none">
-                            <div className="bg-primary text-black font-display text-[10px] tracking-[0.5em] py-2 px-12 -rotate-45 whitespace-nowrap shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                              SOLD OUT
+                          <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+                            <div className="w-[180%] bg-primary text-black py-3 -rotate-[15deg] border-y border-black/20 shadow-[0_0_50px_rgba(0,0,0,0.8)] relative flex items-center">
+                              <motion.div 
+                                className="flex gap-12 items-center whitespace-nowrap"
+                                animate={{ x: [0, -1000] }}
+                                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                              >
+                                {[...Array(10)].map((_, i) => (
+                                  <div key={i} className="flex gap-12 items-center">
+                                    <span className="text-[11px] font-bold tracking-[0.8em]">SOLD OUT</span>
+                                    <div className="w-2 h-2 bg-black rotate-45" />
+                                    <span className="text-[11px] font-bold tracking-[0.8em]">NULL STOCK</span>
+                                    <div className="w-2 h-2 bg-black rotate-45" />
+                                    <span className="text-[11px] font-bold tracking-[0.8em]">VOID_DEPLETED</span>
+                                    <div className="w-2 h-2 bg-black rotate-45" />
+                                  </div>
+                                ))}
+                              </motion.div>
                             </div>
                           </div>
                         )}
