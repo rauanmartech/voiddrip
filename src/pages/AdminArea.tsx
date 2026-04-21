@@ -28,7 +28,8 @@ import {
   DollarSign,
   PieChart as PieChartIcon,
   Layers,
-  Copy
+  Copy,
+  Tag
 } from "lucide-react";
 import { 
   BarChart as ReBarChart, 
