@@ -15,6 +15,10 @@ export interface SetItem {
     price: number;
     image_url: string;
     category: string;
+    description: string | null;
+    sizes: string[] | null;
+    colors: string[] | null;
+    stock_quantity: number;
   };
 }
 
