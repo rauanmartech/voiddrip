@@ -271,7 +271,7 @@ export default function Checkout() {
 
       // Check if coupon is active
       if (!coupon.active) {
-        setCouponError("Este cupom nÃ£o estÃ¡ ativo");
+        setCouponError("Este cupom não está ativo");
         setValidatingCoupon(false);
         return;
       }
@@ -404,7 +404,7 @@ export default function Checkout() {
 
                   <motion.div animate={errors.includes("email") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      E-mail {errors.includes("email") && <span className="text-red-500 ml-1">âœ•</span>}
+                      E-mail {errors.includes("email") && <span className="text-red-500 ml-1">✖</span>}
                     </label>
                     <Input 
                       placeholder="seu@e-mail.com" 
@@ -532,7 +532,7 @@ export default function Checkout() {
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
                   <motion.div className="md:col-span-2" animate={errors.includes("zipCode") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      CEP {errors.includes("zipCode") && <span className="text-red-500 ml-1">âœ•</span>}
+                      CEP {errors.includes("zipCode") && <span className="text-red-500 ml-1">✖</span>}
                     </label>
                     <div className="relative">
                       <Input 
@@ -552,7 +552,7 @@ export default function Checkout() {
                   
                   <motion.div className="md:col-span-4" animate={errors.includes("street") ? "shake" : ""} variants={shakeAnimation}>
                     <label className={STYLES.label}>
-                      Rua / Logradouro {errors.includes("street") && <span className="text-red-500 ml-1">âœ•</span>}
+                      Rua / Logradouro {errors.includes("street") && <span className="text-red-500 ml-1">✖</span>}
                     </label>
                     <Input 
                       placeholder="Nome da rua" 
@@ -898,19 +898,19 @@ export default function Checkout() {
                   {!appliedCoupon ? (
                     <div className="space-y-2">
                       <label className="text-[9px] tracking-[0.2em] text-muted-foreground uppercase">Cupom de Desconto</label>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <input
                           type="text"
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                           placeholder="CÓDIGO"
-                          className="flex-1 bg-black/40 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors uppercase"
+                          className="w-full sm:flex-1 bg-black/40 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors uppercase"
                           onKeyPress={(e) => e.key === "Enter" && handleApplyCoupon()}
                         />
                         <button
                           onClick={handleApplyCoupon}
                           disabled={validatingCoupon}
-                          className="px-6 py-3 bg-white text-black text-[10px] font-bold tracking-widest uppercase hover:bg-primary transition-colors disabled:opacity-50"
+                          className="w-full sm:w-auto px-6 py-3 bg-white text-black text-[10px] font-bold tracking-widest uppercase hover:bg-primary transition-colors disabled:opacity-50 whitespace-nowrap"
                         >
                           {validatingCoupon ? "..." : "APLICAR"}
                         </button>
@@ -955,7 +955,7 @@ export default function Checkout() {
                    )}
                    <div className="flex justify-between text-[10px] tracking-widest text-primary uppercase font-bold">
                       <span>Frete</span>
-                      <span>GRÃTIS</span>
+                      <span>GRÁTIS</span>
                    </div>
                    <div className="flex justify-between items-end pt-4">
                       <span className="font-display text-sm tracking-widest">TOTAL</span>
@@ -988,4 +988,5 @@ export default function Checkout() {
     </div>
   );
 }
+
 
