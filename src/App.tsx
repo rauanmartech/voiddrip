@@ -7,6 +7,7 @@ import { Suspense, lazy } from "react";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminArea from "./pages/AdminArea.tsx";
+import Maintenance from "./pages/Maintenance.tsx";
 import { CartProvider } from "./contexts/CartContext.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { WishlistProvider } from "./contexts/WishlistContext.tsx";
@@ -25,8 +26,6 @@ const Orders = lazy(() => import("./pages/Orders.tsx"));
 const VibeSurvey = lazy(() => import("./pages/VibeSurvey.tsx"));
 const MyCoupons = lazy(() => import("./pages/MyCoupons.tsx"));
 const AdminCoupons = lazy(() => import("./pages/AdminCoupons.tsx"));
-
-
 
 // Minimal page loader
 const PageLoader = () => (
@@ -47,6 +46,9 @@ const queryClient = new QueryClient({
   },
 });
 
+// Maintenance flag
+const isMaintenance = true;
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -56,26 +58,36 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <CartDrawer />
+              {!isMaintenance && <CartDrawer />}
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/sobre" element={<About />} />
-                  <Route path="/acessorios" element={<Accessories />} />
-                  <Route path="/colecao" element={<Collection />} />
-                  <Route path="/favoritos" element={<Favorites />} />
-                  <Route path="/produto/:id" element={<ProductDetails />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/perfil" element={<Profile />} />
+                  {isMaintenance ? (
+                    <>
+                      {/* Allow access to admin even in maintenance */}
+                      <Route path="/admin" element={<AdminArea />} />
+                      <Route path="/admin/cupons" element={<AdminCoupons />} />
+                      <Route path="*" element={<Maintenance />} />
+                    </>
+                  ) : (
+                    <>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/sobre" element={<About />} />
+                      <Route path="/acessorios" element={<Accessories />} />
+                      <Route path="/colecao" element={<Collection />} />
+                      <Route path="/favoritos" element={<Favorites />} />
+                      <Route path="/produto/:id" element={<ProductDetails />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/perfil" element={<Profile />} />
 
-                  <Route path="/pedidos" element={<Orders />} />
-                  <Route path="/cupons" element={<MyCoupons />} />
-                  <Route path="/vibes" element={<VibeSurvey />} />
-                  <Route path="/admin" element={<AdminArea />} />
-                  <Route path="/admin/cupons" element={<AdminCoupons />} />
+                      <Route path="/pedidos" element={<Orders />} />
+                      <Route path="/cupons" element={<MyCoupons />} />
+                      <Route path="/vibes" element={<VibeSurvey />} />
+                      <Route path="/admin" element={<AdminArea />} />
+                      <Route path="/admin/cupons" element={<AdminCoupons />} />
 
-
-                  <Route path="*" element={<NotFound />} />
+                      <Route path="*" element={<NotFound />} />
+                    </>
+                  )}
                 </Routes>
               </Suspense>
             </BrowserRouter>
