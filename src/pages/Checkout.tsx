@@ -59,7 +59,7 @@ export default function Checkout() {
 
   // Form States - Identification
   const [buyerData, setBuyerData] = useState({
-    fullName: "",
+    fullName: user?.user_metadata?.full_name || "",
     email: user?.email || "",
     documentNumber: "",
   });
@@ -80,8 +80,12 @@ export default function Checkout() {
 
   // Synchronize email if user changes
   useEffect(() => {
-    if (user?.email) {
-      setBuyerData(prev => ({ ...prev, email: user.email }));
+    if (user) {
+      setBuyerData(prev => ({ 
+        ...prev, 
+        email: user.email || prev.email,
+        fullName: prev.fullName || user.user_metadata?.full_name || ""
+      }));
     }
   }, [user]);
 
@@ -110,6 +114,7 @@ export default function Checkout() {
     const { data, error } = await supabase
       .from("addresses")
       .select("*")
+      .eq("user_id", user.id)
       .order("is_primary", { ascending: false });
     
     if (data && data.length > 0) {
