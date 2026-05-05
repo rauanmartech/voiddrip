@@ -47,7 +47,7 @@ const queryClient = new QueryClient({
 });
 
 // Maintenance flag
-const isMaintenance = true;
+const isMaintenance = false;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
