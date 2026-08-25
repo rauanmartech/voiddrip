@@ -1,16 +1,16 @@
-# Void Drip Society 🪐
+# <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/orbit.svg" width="28" height="28" alt="Orbit" /> Void Drip Society
 
 > Plataforma de e-commerce e catálogo interativo para moda e acessórios streetwear com estética cósmica/futurista, integração completa de pagamentos via Mercado Pago e backend serverless no Supabase.
 
 ---
 
-## 📖 Sobre o Projeto
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/book-open.svg" width="20" height="20" alt="Book" /> Sobre o Projeto
 
 O **Void Drip Society** é uma aplicação completa de e-commerce voltada para a cultura streetwear contemporânea. O projeto combina uma identidade visual marcante (dark mode com elementos cósmicos e microinterações fluidas) com uma arquitetura técnica robusta para suportar jornadas de compra completas: desde a exploração de produtos, aplicação de cupons, gestão de carrinho e lista de desejos, até a geração de checkout real com suporte a PIX e Cartão de Crédito.
 
 ---
 
-## ✨ Principais Funcionalidades
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/sparkles.svg" width="20" height="20" alt="Sparkles" /> Principais Funcionalidades
 
 - **Catálogo Dinâmico e Filtros**: Navegação por categorias (camisetas, moletons, acessórios, conjuntos), paginação, ordenação e visualização detalhada de peças.
 - **Carrinho e Checkout Completo**: Drawer de carrinho reativo com controle de estoque, cálculo de descontos por cupom e integração direta com a API do **Mercado Pago**.
@@ -22,7 +22,7 @@ O **Void Drip Society** é uma aplicação completa de e-commerce voltada para a
 
 ---
 
-## 🛠️ Stack Tecnológica
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/cpu.svg" width="20" height="20" alt="Tech Stack" /> Stack Tecnológica
 
 ### Frontend
 - **Core**: React 18 + TypeScript + Vite
@@ -41,7 +41,7 @@ O **Void Drip Society** é uma aplicação completa de e-commerce voltada para a
 
 ---
 
-## 📐 Arquitetura
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/workflow.svg" width="20" height="20" alt="Workflow" /> Arquitetura
 
 ```mermaid
 flowchart TD
@@ -73,7 +73,7 @@ flowchart TD
 
 ---
 
-## 📂 Estrutura de Pastas
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/folder-tree.svg" width="20" height="20" alt="Folder Tree" /> Estrutura de Pastas
 
 ```text
 ├── api/                  # Vercel Serverless Functions (ex: /api/produto/[id])
@@ -100,7 +100,7 @@ flowchart TD
 
 ---
 
-## 🚀 Como Executar Localmente
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/terminal.svg" width="20" height="20" alt="Terminal" /> Como Executar Localmente
 
 ### Pré-requisitos
 - **Node.js**: Versão 18 ou superior
@@ -145,7 +145,7 @@ Acesse a aplicação em `http://localhost:8080`.
 
 ---
 
-## 📦 Scripts Disponíveis
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/package.svg" width="20" height="20" alt="Package" /> Scripts Disponíveis
 
 | Comando | Descrição |
 |---------|-----------|
@@ -157,7 +157,7 @@ Acesse a aplicação em `http://localhost:8080`.
 
 ---
 
-## 🗄️ Banco de Dados
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/database.svg" width="20" height="20" alt="Database" /> Banco de Dados
 
 Os scripts SQL com as definições de tabelas, funções, triggers e políticas RLS (Row Level Security) estão organizados na pasta [`docs/database/`](file:///c:/Users/clire/OneDrive/Área de Trabalho/Sites/void-drip-landing-main/docs/database):
 
@@ -167,6 +167,6 @@ Os scripts SQL com as definições de tabelas, funções, triggers e políticas 
 
 ---
 
-## 📄 Licença
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/file-text.svg" width="20" height="20" alt="License" /> Licença
 
 Este projeto é desenvolvido para fins comerciais e de portfólio. Todos os direitos reservados à Void Drip Society.
