@@ -2,6 +2,16 @@
 
 > Plataforma de e-commerce e catálogo interativo para moda e acessórios streetwear com estética cósmica/futurista, integração completa de pagamentos via Mercado Pago e backend serverless no Supabase.
 
+<p align="left">
+  <img src="https://img.shields.io/badge/React-18.3.1-00d8ff?style=flat&logo=react&logoColor=white&labelColor=23272f" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5.8-3178c6?style=flat&logo=typescript&logoColor=white&labelColor=23272f" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-5.4-646cff?style=flat&logo=vite&logoColor=white&labelColor=23272f" alt="Vite" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-06b6d4?style=flat&logo=tailwindcss&logoColor=white&labelColor=23272f" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Supabase-Database_%26_Auth-3ecf8e?style=flat&logo=supabase&logoColor=white&labelColor=23272f" alt="Supabase" />
+  <img src="https://img.shields.io/badge/TanStack_Query-v5-ff4154?style=flat&logo=reactquery&logoColor=white&labelColor=23272f" alt="TanStack Query" />
+  <img src="https://img.shields.io/badge/Mercado_Pago-Checkout_%26_Pix-009ee3?style=flat&logo=mercadopago&logoColor=white&labelColor=23272f" alt="Mercado Pago" />
+</p>
+
 ---
 
 ## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/book-open.svg" width="20" height="20" alt="Book" /> Sobre o Projeto
