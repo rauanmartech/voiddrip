@@ -130,11 +130,11 @@ const AdminSidebar = () => {
           return;
         }
         const { data: publicUrlData } = supabase.storage.from('produtos').getPublicUrl(fileName);
-        finalUrls.push(publicUrlData.publicUrl);
+        uploadedUrls.push(publicUrlData.publicUrl);
       }
     }
 
-    let resultList = [...existingImages, ...finalUrls];
+    const finalUrls = [...existingImages, ...uploadedUrls];
     let coverUrl = "";
 
     if (coverImageSource === "existing" && coverImageIndex < existingImages.length) {

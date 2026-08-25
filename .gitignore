@@ -7,10 +7,29 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build output
 dist
 dist-ssr
-*.local
+
+# Environment variables — never commit real secrets
+.env
+.env.*
+!.env.example
+
+# Bun lockfiles (project uses npm)
+bun.lock
+bun.lockb
+
+# Development artifacts
+out.txt
+scratch/
+auditoria/
+
+# Supabase CLI temp files
+supabase/.temp
 
 # Editor directories and files
 .vscode/*

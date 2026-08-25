@@ -234,7 +234,7 @@ const AdminArea = () => {
     setSaving(true);
     setError(null);
 
-    let finalUrls: string[] = [];
+    const finalUrls: string[] = [];
     if (imageFiles.length > 0) {
       for (const file of imageFiles) {
         const fileExt = file.name.split('.').pop();
